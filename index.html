@@ -199,7 +199,7 @@
     } catch(e) {}
 
     const DB_NAME = 'CoolerCraftProDB_CloudOriginal';
-    const DB_Version = 25;
+    const DB_Version = 27;
     let db = null;
 
     const DEFAULT_STORES = ['motors', 'outsourcedMotors', 'coolers', 'customers', 'serviceTickets', 'replacementInventory', 'complaintTypes', 'auditLogs', 'users', 'dispatches'];
@@ -1299,13 +1299,17 @@
                 let effectiveDate = dispatchDateMap[t.coolerSn] || t.purchaseDate || '2026-01-01';
                 let pDate = new Date(effectiveDate);
                 
+                // FIXED 1-YEAR / MONTH CALENDAR ADDITION
                 let warrantyEnd = new Date(pDate);
-                if (t.saleCategory === 'MOTOR_WHOLESALE' || t.saleCategory === 'COOLER_RETAIL') {
-                  warrantyEnd.setFullYear(warrantyEnd.getFullYear() + 1); // Exact 1 Year
-                } else if (t.saleCategory === 'COOLER_WHOLESALE') {
-                  warrantyEnd.setDate(warrantyEnd.getDate() + 90 + parseInt(t.extendedDays || 0)); // 3 Months + Extra extension
+                let category = t.saleCategory || 'COOLER_RETAIL';
+                
+                if (category === 'MOTOR_WHOLESALE' || category === 'COOLER_RETAIL') {
+                  warrantyEnd.setFullYear(warrantyEnd.getFullYear() + 1); // Exact 1 Year (e.g. April 2026 -> April 2027)
+                } else if (category === 'COOLER_WHOLESALE') {
+                  warrantyEnd.setMonth(warrantyEnd.getMonth() + 3); // 3 Months Base
+                  warrantyEnd.setDate(warrantyEnd.getDate() + parseInt(t.extendedDays || 0)); // + Extension Days
                 } else {
-                  warrantyEnd.setMonth(warrantyEnd.getMonth() + 6); // Default Spare Motor Retail (6 Months)
+                  warrantyEnd.setMonth(warrantyEnd.getMonth() + 6); // Spare Motor Retail (6 Months)
                 }
 
                 let diffTime = warrantyEnd - today;
@@ -1314,7 +1318,7 @@
                   ? `<span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 font-bold text-[10px]">Active Warranty (${remainingDays} days left - Exp: ${warrantyEnd.toISOString().split('T')[0]})</span>` 
                   : `<span class="px-2 py-0.5 rounded bg-rose-950 text-rose-400 font-bold text-[10px]">Warranty Expired</span>`;
 
-                let raisedDate = new Date(t.createdAt || effectiveDate);
+                let raisedDate = new Date(t.createdAt || today);
                 let operatedDays = Math.max(1, Math.floor((raisedDate - pDate) / (1000 * 60 * 60 * 24)));
 
                 let statusBadge = t.status === 'COMPLETED' 
@@ -1332,12 +1336,12 @@
                     </div>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-slate-300">
                       <div>Phone: <strong class="text-emerald-400 font-mono">${t.mobile}</strong> | Customer: ${t.customerName}</div>
-                      <div>Tier: <span class="text-amber-300 font-bold">${t.saleCategory || 'COOLER_RETAIL'}</span> | Start Date: <span class="font-mono text-sky-300">${effectiveDate}</span></div>
+                      <div>Tier: <span class="text-amber-300 font-bold">${category}</span> | Start: <span class="font-mono text-sky-300">${effectiveDate}</span></div>
                     </div>
                     <div class="p-2 bg-slate-900 rounded-lg flex flex-wrap justify-between text-[11px] text-slate-400 font-mono border border-slate-800">
                       <span>Complaint: <strong class="text-amber-400">${t.complaintType}</strong></span>
                       <span>Part SN: <strong class="text-sky-400">${t.newPartSn || 'N/A'}</strong></span>
-                      <span>Lifespan: <strong class="text-emerald-400">${operatedDays} Days Operated</strong></span>
+                      <span>Operated Lifespan Before Replace: <strong class="text-emerald-400">${operatedDays} Days</strong></span>
                     </div>
                     <div class="flex justify-end gap-1 pt-1">
                       <button onclick="app.toggleTicketStatus('${t.ticketNo}')" class="px-2 py-1 bg-indigo-900 text-indigo-200 rounded font-bold text-[10px]">Toggle Status</button>
