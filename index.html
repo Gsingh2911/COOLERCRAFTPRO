@@ -199,7 +199,7 @@
     } catch(e) {}
 
     const DB_NAME = 'CoolerCraftProDB_CloudOriginal';
-    const DB_Version = 24;
+    const DB_Version = 25;
     let db = null;
 
     const DEFAULT_STORES = ['motors', 'outsourcedMotors', 'coolers', 'customers', 'serviceTickets', 'replacementInventory', 'complaintTypes', 'auditLogs', 'users', 'dispatches'];
@@ -1299,19 +1299,19 @@
                 let effectiveDate = dispatchDateMap[t.coolerSn] || t.purchaseDate || '2026-01-01';
                 let pDate = new Date(effectiveDate);
                 
-                let totalWarrantyDays = 180;
-                if (t.saleCategory === 'MOTOR_WHOLESALE') totalWarrantyDays = 365;
-                else if (t.saleCategory === 'COOLER_RETAIL') totalWarrantyDays = 365;
-                else if (t.saleCategory === 'COOLER_WHOLESALE') {
-                  totalWarrantyDays = 90 + parseInt(t.extendedDays || 0);
+                let warrantyEnd = new Date(pDate);
+                if (t.saleCategory === 'MOTOR_WHOLESALE' || t.saleCategory === 'COOLER_RETAIL') {
+                  warrantyEnd.setFullYear(warrantyEnd.getFullYear() + 1); // Exact 1 Year
+                } else if (t.saleCategory === 'COOLER_WHOLESALE') {
+                  warrantyEnd.setDate(warrantyEnd.getDate() + 90 + parseInt(t.extendedDays || 0)); // 3 Months + Extra extension
+                } else {
+                  warrantyEnd.setMonth(warrantyEnd.getMonth() + 6); // Default Spare Motor Retail (6 Months)
                 }
 
-                let warrantyEnd = new Date(pDate);
-                warrantyEnd.setDate(warrantyEnd.getDate() + totalWarrantyDays);
                 let diffTime = warrantyEnd - today;
                 let remainingDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
                 let warrantyBadge = remainingDays > 0 
-                  ? `<span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 font-bold text-[10px]">Active Warranty (${remainingDays} days left)</span>` 
+                  ? `<span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 font-bold text-[10px]">Active Warranty (${remainingDays} days left - Exp: ${warrantyEnd.toISOString().split('T')[0]})</span>` 
                   : `<span class="px-2 py-0.5 rounded bg-rose-950 text-rose-400 font-bold text-[10px]">Warranty Expired</span>`;
 
                 let raisedDate = new Date(t.createdAt || effectiveDate);
