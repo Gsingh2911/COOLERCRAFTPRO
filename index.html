@@ -200,7 +200,7 @@
     } catch(e) {}
 
     const DB_NAME = 'CoolerCraftProDB_CloudOriginal';
-    const DB_Version = 15;
+    const DB_Version = 16;
     let db = null;
 
     const DEFAULT_STORES = ['motors', 'outsourcedMotors', 'coolers', 'customers', 'serviceTickets', 'replacementInventory', 'complaintTypes', 'auditLogs', 'users'];
@@ -336,22 +336,29 @@
         }
       }
 
-      // JSON Backup Download Function
+      // ROBUST JSON BACKUP DOWNLOAD FUNCTION
       async downloadBackupJSON() {
-        const backupData = {};
-        for (let storeName of DEFAULT_STORES) {
-          backupData[storeName] = await dbGetAll(storeName);
+        try {
+          const backupData = {};
+          for (let storeName of DEFAULT_STORES) {
+            backupData[storeName] = await dbGetAll(storeName);
+          }
+          const blob = new Blob([JSON.stringify(backupData, null, 2)], { type: "application/json" });
+          const url = URL.createObjectURL(blob);
+          const downloadAnchor = document.createElement('a');
+          downloadAnchor.href = url;
+          downloadAnchor.download = "coolercraft_backup_" + new Date().toISOString().split('T')[0] + ".json";
+          document.body.appendChild(downloadAnchor);
+          downloadAnchor.click();
+          document.body.removeChild(downloadAnchor);
+          URL.revokeObjectURL(url);
+          alert('Backup JSON downloaded successfully!');
+        } catch (err) {
+          alert('Error generating backup file: ' + err.message);
         }
-        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
-        const downloadAnchor = document.createElement('a');
-        downloadAnchor.setAttribute("href", dataStr);
-        downloadAnchor.setAttribute("download", "coolercraft_backup.json");
-        document.body.appendChild(downloadAnchor);
-        downloadAnchor.click();
-        downloadAnchor.remove();
       }
 
-      // JSON Backup Restore & Auto Cloud Sync
+      // RESTORE JSON AND AUTO SYNC TO FIREBASE
       async importBackupJSON(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -364,7 +371,7 @@
               if (DEFAULT_STORES.includes(storeName)) {
                 const records = backupData[storeName];
                 for (let record of records) {
-                  await dbPut(storeName, record); // Saves locally and pushes to Firebase cloud automatically
+                  await dbPut(storeName, record); // Saves locally and syncs to Firebase
                 }
               }
             }
@@ -1316,7 +1323,6 @@
         window.open(`https://wa.me/91${mobile}?text=${msg}`, '_blank');
       }
 
-      // SERVICE TICKET MODAL WITH NON-SERIAL VS SERIAL DROPDOWN PROVISION
       async showRetrofitServiceModal(editTicketNo = null) {
         let existing = editTicketNo ? await dbGet('serviceTickets', editTicketNo) : null;
         const todayStr = new Date().toISOString().split('T')[0];
@@ -1349,7 +1355,6 @@
                     <option value="MANUAL">Serial (Manual Entry / Scanner)</option>
                   </select>
 
-                  <!-- Manual Serial Entry & Scanner Box -->
                   <div id="sr-manual-serial-box" class="hidden pt-2 space-y-1">
                     <label class="block text-[11px] text-slate-400">Enter or Scan Serial Number:</label>
                     <div class="flex gap-2">
@@ -1358,7 +1363,6 @@
                     </div>
                   </div>
 
-                  <!-- Auto-Generated Serial Box -->
                   <div id="sr-auto-serial-box" class="pt-1">
                     <span class="text-[10px] text-slate-400">Auto-Generated Serial Number:</span>
                     <p id="sr-sn-preview" class="font-mono font-bold text-emerald-400 text-sm mt-0.5">${existing ? existing.coolerSn : 'CLR-20260810-961'}</p>
