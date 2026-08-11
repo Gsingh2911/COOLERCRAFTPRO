@@ -644,9 +644,9 @@
                     <td class="p-3"><span class="px-2 py-0.5 bg-slate-800 rounded text-[10px]">${m.usageType}</span></td>
                     <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] font-bold ${m.qcStatus==='PASS'?'bg-emerald-950 text-emerald-400':'bg-rose-950 text-rose-400'}">${m.qcStatus || 'PASS'}</span></td>
                     <td class="p-3 text-right space-x-1">
-                      <button onclick="app.showSingleMotorModal('${m.sn}')" class="p-1.5 bg-amber-950 text-amber-400 rounded"><i class="fa-solid fa-pen-to-square"></i></button>
-                      <button onclick="app.deleteMotor('${m.sn}')" class="p-1.5 bg-rose-950 text-rose-400 rounded"><i class="fa-solid fa-trash"></i></button>
-                      <button onclick="app.generateAndShowQR('${m.sn}', '${m.model}')" class="p-1.5 bg-slate-800 text-slate-300 rounded"><i class="fa-solid fa-qrcode"></i></button>
+                      <button type="button" onclick="app.showSingleMotorModal('${m.sn}')" class="p-1.5 bg-amber-950 text-amber-400 rounded cursor-pointer"><i class="fa-solid fa-pen-to-square"></i></button>
+                      <button type="button" onclick="app.deleteMotor('${m.sn}')" class="p-1.5 bg-rose-950 text-rose-400 rounded cursor-pointer"><i class="fa-solid fa-trash"></i></button>
+                      <button type="button" onclick="app.generateAndShowQR('${m.sn}', '${m.model}')" class="p-1.5 bg-slate-800 text-slate-300 rounded cursor-pointer"><i class="fa-solid fa-qrcode"></i></button>
                     </td>
                   </tr>
                 `).join('')}
@@ -803,8 +803,8 @@
                     <td class="p-3">${m.model}</td>
                     <td class="p-3">${m.material}</td>
                     <td class="p-3 text-right space-x-1">
-                      <button onclick="app.showOutsourcedMotorModal('${m.outSn}')" class="p-1.5 bg-amber-950 text-amber-400 rounded"><i class="fa-solid fa-pen-to-square"></i></button>
-                      <button onclick="app.deleteOutsourcedMotor('${m.outSn}')" class="p-1.5 bg-rose-950 text-rose-400 rounded"><i class="fa-solid fa-trash"></i></button>
+                      <button type="button" onclick="app.showOutsourcedMotorModal('${m.outSn}')" class="p-1.5 bg-amber-950 text-amber-400 rounded cursor-pointer"><i class="fa-solid fa-pen-to-square"></i></button>
+                      <button type="button" onclick="app.deleteOutsourcedMotor('${m.outSn}')" class="p-1.5 bg-rose-950 text-rose-400 rounded cursor-pointer"><i class="fa-solid fa-trash"></i></button>
                     </td>
                   </tr>
                 `).join('')}
@@ -992,9 +992,9 @@
                       <td class="p-3 text-slate-400">${clr.pumpName || '18W Submersible'}</td>
                       <td class="p-3 font-bold text-slate-200">${clr.fitter || 'Ramesh Singh'}</td>
                       <td class="p-3 text-right space-x-1">
-                        <button onclick="app.showCoolerModal('${clr.sn}')" class="p-1.5 bg-amber-950 text-amber-400 rounded"><i class="fa-solid fa-pen-to-square"></i></button>
-                        <button onclick="app.deleteCooler('${clr.sn}')" class="p-1.5 bg-rose-950 text-rose-400 rounded"><i class="fa-solid fa-trash"></i></button>
-                        <button onclick="app.generateAndShowQR('${clr.sn}', '${clr.name || 'Novetech Air Cooler'}')" class="p-1.5 bg-slate-800 text-slate-300 rounded"><i class="fa-solid fa-print"></i></button>
+                        <button type="button" onclick="app.showCoolerModal('${clr.sn}')" class="p-1.5 bg-amber-950 text-amber-400 rounded cursor-pointer"><i class="fa-solid fa-pen-to-square"></i></button>
+                        <button type="button" onclick="app.deleteCooler('${clr.sn}')" class="p-1.5 bg-rose-950 text-rose-400 rounded cursor-pointer"><i class="fa-solid fa-trash"></i></button>
+                        <button type="button" onclick="app.generateAndShowQR('${clr.sn}', '${clr.name || 'Novetech Air Cooler'}')" class="p-1.5 bg-slate-800 text-slate-300 rounded cursor-pointer"><i class="fa-solid fa-print"></i></button>
                       </td>
                     </tr>
                   `).join('')}
@@ -1299,17 +1299,16 @@
                 let effectiveDate = dispatchDateMap[t.coolerSn] || t.purchaseDate || '2026-01-01';
                 let pDate = new Date(effectiveDate);
                 
-                // FIXED 1-YEAR / MONTH CALENDAR ADDITION
                 let warrantyEnd = new Date(pDate);
                 let category = t.saleCategory || 'COOLER_RETAIL';
                 
                 if (category === 'MOTOR_WHOLESALE' || category === 'COOLER_RETAIL') {
-                  warrantyEnd.setFullYear(warrantyEnd.getFullYear() + 1); // Exact 1 Year (e.g. April 2026 -> April 2027)
+                  warrantyEnd.setFullYear(warrantyEnd.getFullYear() + 1);
                 } else if (category === 'COOLER_WHOLESALE') {
-                  warrantyEnd.setMonth(warrantyEnd.getMonth() + 3); // 3 Months Base
-                  warrantyEnd.setDate(warrantyEnd.getDate() + parseInt(t.extendedDays || 0)); // + Extension Days
+                  warrantyEnd.setMonth(warrantyEnd.getMonth() + 3);
+                  warrantyEnd.setDate(warrantyEnd.getDate() + parseInt(t.extendedDays || 0));
                 } else {
-                  warrantyEnd.setMonth(warrantyEnd.getMonth() + 6); // Spare Motor Retail (6 Months)
+                  warrantyEnd.setMonth(warrantyEnd.getMonth() + 6);
                 }
 
                 let diffTime = warrantyEnd - today;
@@ -1473,13 +1472,23 @@
         let customers = await dbGetAll('customers');
         const tickets = await dbGetAll('serviceTickets');
         
-        if(customers.length === 0 && tickets.length > 0) {
-          for(let t of tickets) {
-            if(t.mobile && t.mobile !== 'NA') {
-              await dbPut('customers', { mobile: t.mobile, name: t.customerName || 'Customer', coolerSn: t.coolerSn, purchaseDate: t.purchaseDate || '2026-08-11', type: 'Retailer' });
+        if (tickets.length > 0) {
+          for (let t of tickets) {
+            if (t.mobile && t.mobile !== 'NA') {
+              let existingCust = customers.find(cust => cust.mobile === t.mobile);
+              if (!existingCust) {
+                let newCust = { 
+                  mobile: t.mobile, 
+                  name: t.customerName || 'Customer', 
+                  coolerSn: t.coolerSn, 
+                  purchaseDate: t.purchaseDate || '2026-08-11', 
+                  type: 'Retailer' 
+                };
+                await dbPut('customers', newCust);
+                customers.push(newCust);
+              }
             }
           }
-          customers = await dbGetAll('customers');
         }
 
         const uniqueMap = {};
