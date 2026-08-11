@@ -126,18 +126,20 @@
         <div class="flex items-center space-x-3">
           <h2 id="page-title" class="text-base font-bold text-slate-200 uppercase font-mono">Dashboard Overview</h2>
         </div>
-        <div class="flex items-center space-x-3">
-          <!-- Hidden file input for JSON restore -->
+        <div class="flex items-center space-x-3 flex-wrap gap-2">
+          <!-- Backup & Restore Buttons -->
+          <button onclick="app.downloadBackupJSON()" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-sky-500/20">
+            <i class="fa-solid fa-file-export"></i> Backup JSON
+          </button>
+          
           <input type="file" id="backup-file-input" class="hidden" accept=".json" onchange="app.importBackupJSON(event)">
           <button onclick="document.getElementById('backup-file-input').click()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-amber-500/20">
-            <i class="fa-solid fa-file-import"></i> Restore Backup & Sync Cloud
+            <i class="fa-solid fa-file-import"></i> Restore JSON
           </button>
+
           <button onclick="app.openAiAdvisorModal()" class="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-purple-500/20">
-            <i class="fa-solid fa-brain"></i> AI Insights & Advisor
+            <i class="fa-solid fa-brain"></i> AI Insights
           </button>
-          <div class="hidden md:block w-48">
-            <input type="text" id="global-search-input" onkeyup="app.handleGlobalSearch(event)" placeholder="Search SN, Code..." class="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-sky-500">
-          </div>
         </div>
       </header>
 
@@ -198,7 +200,7 @@
     } catch(e) {}
 
     const DB_NAME = 'CoolerCraftProDB_CloudOriginal';
-    const DB_Version = 13;
+    const DB_Version = 15;
     let db = null;
 
     const DEFAULT_STORES = ['motors', 'outsourcedMotors', 'coolers', 'customers', 'serviceTickets', 'replacementInventory', 'complaintTypes', 'auditLogs', 'users'];
@@ -302,11 +304,54 @@
 
       async init() {
         await initDB();
+        await this.syncDataFromFirebaseToLocal();
         await this.seedDefaultUsers();
         await this.seedDefaults();
       }
 
-      // JSON Backup Restore with Automatic Cloud Sync
+      async syncDataFromFirebaseToLocal() {
+        if (!cloudDb) return;
+        const stores = ['motors', 'outsourcedMotors', 'coolers', 'customers', 'serviceTickets', 'replacementInventory', 'complaintTypes', 'auditLogs', 'users'];
+        
+        for (let storeName of stores) {
+          try {
+            const snapshot = await cloudDb.collection(storeName).get();
+            if (!snapshot.empty) {
+              for (let doc of snapshot.docs) {
+                const item = doc.data();
+                await new Promise((resolve) => {
+                  const tx = db.transaction(storeName, 'readwrite');
+                  const req = tx.objectStore(storeName).put(item);
+                  req.onsuccess = () => resolve(req.result);
+                  req.onerror = () => resolve(null);
+                });
+              }
+            }
+          } catch (err) {
+            console.error(`Error syncing ${storeName} from cloud:`, err);
+          }
+        }
+        if (this.currentView && document.getElementById('content-area')) {
+          await this.navigate(this.currentView);
+        }
+      }
+
+      // JSON Backup Download Function
+      async downloadBackupJSON() {
+        const backupData = {};
+        for (let storeName of DEFAULT_STORES) {
+          backupData[storeName] = await dbGetAll(storeName);
+        }
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupData, null, 2));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", "coolercraft_backup.json");
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+      }
+
+      // JSON Backup Restore & Auto Cloud Sync
       async importBackupJSON(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -319,8 +364,7 @@
               if (DEFAULT_STORES.includes(storeName)) {
                 const records = backupData[storeName];
                 for (let record of records) {
-                  // Save locally and automatically sync to Firebase cloud
-                  await dbPut(storeName, record);
+                  await dbPut(storeName, record); // Saves locally and pushes to Firebase cloud automatically
                 }
               }
             }
@@ -1272,6 +1316,7 @@
         window.open(`https://wa.me/91${mobile}?text=${msg}`, '_blank');
       }
 
+      // SERVICE TICKET MODAL WITH NON-SERIAL VS SERIAL DROPDOWN PROVISION
       async showRetrofitServiceModal(editTicketNo = null) {
         let existing = editTicketNo ? await dbGet('serviceTickets', editTicketNo) : null;
         const todayStr = new Date().toISOString().split('T')[0];
@@ -1287,7 +1332,7 @@
         document.getElementById('dynamic-modal-container').innerHTML = `
           <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
             <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 space-y-3 max-h-[90vh] overflow-y-auto">
-              <div class="flex justify-between border-b border-slate-800 pb-2"><h3 class="font-bold text-sm">${existing ? 'Edit Service Ticket Details' : 'Raise Service & Serial Provision'}</h3><button onclick="app.closeModal()"><i class="fa-solid fa-xmark"></i></button></div>
+              <div class="flex justify-between border-b border-slate-800 pb-2"><h3 class="font-bold text-sm">${existing ? 'Edit Service Ticket Details' : 'Raise Service Ticket (Serial Provision)'}</h3><button onclick="app.closeModal()"><i class="fa-solid fa-xmark"></i></button></div>
               <form onsubmit="app.saveRetrofitServiceRequest(event, ${existing ? `'${existing.ticketNo}'` : 'null'})" class="space-y-3 text-xs">
                 <div><label class="block mb-1">Customer Name *</label><input type="text" id="sr-cname" value="${existing ? existing.customerName : ''}" placeholder="e.g. Ramesh Kumar" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 font-bold"></div>
                 <div class="grid grid-cols-2 gap-2">
@@ -1296,23 +1341,26 @@
                 </div>
                 <div><label class="block mb-1">Cooler Model Name</label><input type="text" id="sr-model" value="${existing ? (existing.coolerModel || 'Novetech Air Cooler 70L') : 'Novetech Air Cooler 70L'}" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2"></div>
                 
+                <!-- DROPDOWN PROVISION: Non-Serial vs Serial -->
                 <div class="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
-                  <label class="block font-semibold text-sky-400">Product Serial Number Provision *</label>
+                  <label class="block font-semibold text-sky-400">Product Serial Provision Type *</label>
                   <select id="sr-serial-mode" onchange="app.toggleSerialInputMode()" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 font-bold text-slate-100">
-                    <option value="AUTO">Without Serial Number (Auto-Generate Serial)</option>
-                    <option value="MANUAL">With Serial Number (Scan / Enter Manually)</option>
+                    <option value="AUTO">Non-Serial (Auto-Generated Serial Number)</option>
+                    <option value="MANUAL">Serial (Manual Entry / Scanner)</option>
                   </select>
 
+                  <!-- Manual Serial Entry & Scanner Box -->
                   <div id="sr-manual-serial-box" class="hidden pt-2 space-y-1">
                     <label class="block text-[11px] text-slate-400">Enter or Scan Serial Number:</label>
                     <div class="flex gap-2">
-                      <input type="text" id="sr-manual-sn" value="${existing ? existing.coolerSn : ''}" placeholder="Scan or type serial..." class="flex-1 bg-slate-900 border border-slate-800 rounded-xl p-2 font-mono text-sky-400 font-bold">
+                      <input type="text" id="sr-manual-sn" value="${existing ? existing.coolerSn : ''}" placeholder="Scan or type serial number..." class="flex-1 bg-slate-900 border border-slate-800 rounded-xl p-2 font-mono text-sky-400 font-bold">
                       <button type="button" onclick="app.openScannerModal('sr-manual-sn')" class="px-2.5 py-1 bg-sky-600 text-white font-bold rounded-xl"><i class="fa-solid fa-camera"></i> Scan</button>
                     </div>
                   </div>
 
+                  <!-- Auto-Generated Serial Box -->
                   <div id="sr-auto-serial-box" class="pt-1">
-                    <span class="text-[10px] text-slate-400">Auto-Generated Cooler Serial Number:</span>
+                    <span class="text-[10px] text-slate-400">Auto-Generated Serial Number:</span>
                     <p id="sr-sn-preview" class="font-mono font-bold text-emerald-400 text-sm mt-0.5">${existing ? existing.coolerSn : 'CLR-20260810-961'}</p>
                   </div>
                 </div>
@@ -1423,7 +1471,7 @@
         await dbPut('customers', { mobile: mobile, name: cname, coolerSn: finalSN, purchaseDate: pdate, type: 'Retailer' });
         await dbPut('coolers', { sn: finalSN, name: document.getElementById('sr-model').value, fitter: 'Service Ticket Linked', date: pdate });
 
-        alert(`Service Ticket Raised Successfully! Ticket No: ${ticketKey} | Serial: ${finalSN}`);
+        alert(`Service Ticket Raised & Synced! Ticket No: ${ticketKey} | Serial: ${finalSN}`);
         this.closeModal();
         this.navigate('service');
       }
