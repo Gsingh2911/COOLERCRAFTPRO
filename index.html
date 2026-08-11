@@ -119,26 +119,25 @@
       </div>
     </aside>
 
-    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 z-50 flex justify-around items-center h-16 px-1 shadow-2xl" id="mobile-nav-bar"></nav>
+    <nav class="md:hidden fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 z-50 flex items-center h-16 px-2 overflow-x-auto no-scrollbar shadow-2xl space-x-3" id="mobile-nav-bar"></nav>
 
     <main class="flex-1 flex flex-col min-w-0 bg-slate-950 min-h-screen">
-      <header class="h-16 bg-slate-900/80 backdrop-blur-md border-b border-slate-800 px-4 flex items-center justify-between sticky top-0 z-30">
-        <div class="flex items-center space-x-3">
-          <h2 id="page-title" class="text-base font-bold text-slate-200 uppercase font-mono">Dashboard Overview</h2>
+      <header class="bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-3 py-2.5 flex flex-wrap items-center justify-between sticky top-0 z-30 gap-2">
+        <div class="flex items-center space-x-2">
+          <h2 id="page-title" class="text-xs md:text-base font-bold text-slate-200 uppercase font-mono">Dashboard</h2>
         </div>
-        <div class="flex items-center space-x-3 flex-wrap gap-2">
-          <!-- Backup & Restore Buttons -->
-          <button onclick="app.downloadBackupJSON()" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-sky-500/20">
-            <i class="fa-solid fa-file-export"></i> Backup JSON
+        <div class="flex items-center space-x-2 flex-wrap">
+          <button onclick="app.downloadBackupJSON()" class="px-2.5 py-1 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-[11px] font-bold flex items-center gap-1 shadow">
+            <i class="fa-solid fa-file-export"></i> Backup
           </button>
           
           <input type="file" id="backup-file-input" class="hidden" accept=".json" onchange="app.importBackupJSON(event)">
-          <button onclick="document.getElementById('backup-file-input').click()" class="px-3 py-1.5 bg-amber-600 hover:bg-amber-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-amber-500/20">
-            <i class="fa-solid fa-file-import"></i> Restore JSON
+          <button onclick="document.getElementById('backup-file-input').click()" class="px-2.5 py-1 bg-amber-600 hover:bg-amber-500 text-white rounded-lg text-[11px] font-bold flex items-center gap-1 shadow">
+            <i class="fa-solid fa-file-import"></i> Restore
           </button>
 
-          <button onclick="app.openAiAdvisorModal()" class="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-purple-500/20">
-            <i class="fa-solid fa-brain"></i> AI Insights
+          <button onclick="app.openAiAdvisorModal()" class="px-2.5 py-1 bg-purple-600 hover:bg-purple-500 text-white rounded-lg text-[11px] font-bold flex items-center gap-1 shadow">
+            <i class="fa-solid fa-brain"></i> AI
           </button>
         </div>
       </header>
@@ -200,10 +199,10 @@
     } catch(e) {}
 
     const DB_NAME = 'CoolerCraftProDB_CloudOriginal';
-    const DB_Version = 16;
+    const DB_Version = 24;
     let db = null;
 
-    const DEFAULT_STORES = ['motors', 'outsourcedMotors', 'coolers', 'customers', 'serviceTickets', 'replacementInventory', 'complaintTypes', 'auditLogs', 'users'];
+    const DEFAULT_STORES = ['motors', 'outsourcedMotors', 'coolers', 'customers', 'serviceTickets', 'replacementInventory', 'complaintTypes', 'auditLogs', 'users', 'dispatches'];
 
     function initDB() {
       return new Promise((resolve) => {
@@ -219,6 +218,7 @@
               if (store === 'replacementInventory') keyPath = 'partCode';
               if (store === 'complaintTypes' || store === 'users') keyPath = 'name';
               if (store === 'customers') keyPath = 'mobile';
+              if (store === 'dispatches') keyPath = 'dispatchId';
               dbRef.createObjectStore(store, { keyPath });
             }
           });
@@ -257,7 +257,7 @@
           req.onerror = () => reject(req.error);
         });
         if (cloudDb) {
-          const docKey = item.mobile || item.sn || item.outSn || item.ticketNo || item.partCode || item.name || 'doc_' + Date.now();
+          const docKey = item.mobile || item.sn || item.outSn || item.ticketNo || item.partCode || item.name || item.dispatchId || 'doc_' + Date.now();
           cloudDb.collection(storeName).doc(String(docKey)).set(item).catch(()=>{});
         }
       } catch (err) {}
@@ -298,6 +298,7 @@
         this.bulkMotorQueueList = [];
         this.bulkCoolerQueueList = [];
         this.bulkQCScannedList = [];
+        this.dispatchScanList = [];
         this.activeScanTarget = null;
         this.html5QrScanner = null;
       }
@@ -311,7 +312,7 @@
 
       async syncDataFromFirebaseToLocal() {
         if (!cloudDb) return;
-        const stores = ['motors', 'outsourcedMotors', 'coolers', 'customers', 'serviceTickets', 'replacementInventory', 'complaintTypes', 'auditLogs', 'users'];
+        const stores = DEFAULT_STORES;
         
         for (let storeName of stores) {
           try {
@@ -336,7 +337,6 @@
         }
       }
 
-      // ROBUST JSON BACKUP DOWNLOAD FUNCTION
       async downloadBackupJSON() {
         try {
           const backupData = {};
@@ -358,7 +358,6 @@
         }
       }
 
-      // RESTORE JSON AND AUTO SYNC TO FIREBASE
       async importBackupJSON(event) {
         const file = event.target.files[0];
         if (!file) return;
@@ -371,7 +370,7 @@
               if (DEFAULT_STORES.includes(storeName)) {
                 const records = backupData[storeName];
                 for (let record of records) {
-                  await dbPut(storeName, record); // Saves locally and syncs to Firebase
+                  await dbPut(storeName, record);
                 }
               }
             }
@@ -492,20 +491,21 @@
         let modules = [{ id: 'dashboard', label: 'Dashboard', icon: 'fa-chart-pie' }];
         
         if (this.currentRole === 'ADMIN' || this.currentRole === 'MOTOR_TEAM') {
-          modules.push({ id: 'motor-prod', label: 'Motor Production', icon: 'fa-industry' });
-          modules.push({ id: 'outsourced-motors', label: 'Outsourced Motors', icon: 'fa-truck-field' });
-          modules.push({ id: 'motor-qc', label: 'Bulk Motor Testing & QC', icon: 'fa-microchip' });
+          modules.push({ id: 'motor-prod', label: 'Motor Prod', icon: 'fa-industry' });
+          modules.push({ id: 'outsourced-motors', label: 'Outsourced', icon: 'fa-truck-field' });
+          modules.push({ id: 'motor-qc', label: 'Motor QC', icon: 'fa-microchip' });
         }
 
         if (this.currentRole === 'ADMIN' || this.currentRole === 'ASSEMBLY_TEAM') {
-          modules.push({ id: 'cooler-prod', label: 'Cooler Assembly', icon: 'fa-box' });
-          modules.push({ id: 'cooler-qc', label: 'Cooler Final QC', icon: 'fa-vial-circle-check' });
+          modules.push({ id: 'cooler-prod', label: 'Cooler Asm', icon: 'fa-box' });
+          modules.push({ id: 'cooler-qc', label: 'Cooler QC', icon: 'fa-vial-circle-check' });
         }
 
         if (this.currentRole === 'ADMIN' || this.currentRole === 'TECHNICIAN') {
-          modules.push({ id: 'service', label: 'Service & Retrofit SN', icon: 'fa-screwdriver-wrench' });
-          modules.push({ id: 'customers', label: 'Customer Directory', icon: 'fa-users' });
-          modules.push({ id: 'inventory', label: 'Replacement Parts', icon: 'fa-boxes-stacked' });
+          modules.push({ id: 'dispatch', label: 'Dispatch', icon: 'fa-truck-fast' });
+          modules.push({ id: 'service', label: 'Service', icon: 'fa-screwdriver-wrench' });
+          modules.push({ id: 'customers', label: 'Customers', icon: 'fa-users' });
+          modules.push({ id: 'inventory', label: 'Parts Stock', icon: 'fa-boxes-stacked' });
         }
 
         return modules;
@@ -525,16 +525,17 @@
       renderMobileNav() {
         const bar = document.getElementById('mobile-nav-bar');
         if (!bar) return;
-        const modules = this.getNavModules().slice(0, 4);
+        const modules = this.getNavModules();
         bar.innerHTML = modules.map(m => `
-          <button onclick="app.navigate('${m.id}')" class="flex flex-col items-center justify-center w-full h-full text-slate-400 hover:text-sky-400 text-[10px] space-y-1">
-            <i class="fa-solid ${m.icon} text-base"></i><span>${m.label.split(' ')[0]}</span>
+          <button onclick="app.navigate('${m.id}')" class="flex flex-col items-center justify-center shrink-0 px-2 py-1 text-slate-400 hover:text-sky-400 text-[10px] space-y-1">
+            <i class="fa-solid ${m.icon} text-base"></i><span>${m.label}</span>
           </button>
         `).join('') + `
-          <button onclick="app.openScannerModal()" class="flex flex-col items-center justify-center w-full h-full text-sky-400 text-[10px]">
-            <div class="w-10 h-10 rounded-full bg-sky-500 text-slate-950 flex items-center justify-center shadow-lg -mt-4 border-2 border-slate-900">
-              <i class="fa-solid fa-qrcode text-lg"></i>
+          <button onclick="app.openScannerModal()" class="flex flex-col items-center justify-center shrink-0 px-2 py-1 text-sky-400 text-[10px] space-y-1">
+            <div class="w-8 h-8 rounded-full bg-sky-500 text-slate-950 flex items-center justify-center shadow-lg">
+              <i class="fa-solid fa-qrcode text-sm"></i>
             </div>
+            <span>Scan</span>
           </button>
         `;
       }
@@ -553,6 +554,7 @@
           case 'motor-qc': await this.renderMotorQC(content); break;
           case 'cooler-prod': await this.renderCoolerProd(content); break;
           case 'cooler-qc': await this.renderCoolerQC(content); break;
+          case 'dispatch': await this.renderDispatch(content); break;
           case 'service': await this.renderService(content); break;
           case 'customers': await this.renderCustomers(content); break;
           case 'inventory': await this.renderInventory(content); break;
@@ -1129,8 +1131,17 @@
         });
 
         if (motorSn) {
-          const m = await dbGet('motors', motorSn);
-          if (m) { m.coolerSn = serviceCode; await dbPut('motors', m); }
+          let m = await dbGet('motors', motorSn);
+          if (m) {
+            m.coolerSn = serviceCode;
+            await dbPut('motors', m);
+          } else {
+            let om = await dbGet('outsourcedMotors', motorSn);
+            if (om) {
+              om.coolerSn = serviceCode;
+              await dbPut('outsourcedMotors', om);
+            }
+          }
         }
         alert(`Cooler Saved & Synced! Code: ${serviceCode}`);
         this.closeModal();
@@ -1262,35 +1273,76 @@
 
       async renderService(c) {
         const tickets = await dbGetAll('serviceTickets');
+        const dispatches = await dbGetAll('dispatches');
+        const today = new Date();
+
+        const dispatchDateMap = {};
+        dispatches.forEach(d => {
+          if(d.scannedItems) {
+            d.scannedItems.forEach(sn => {
+              dispatchDateMap[sn] = d.dispatchDate;
+            });
+          }
+        });
+
         c.innerHTML = `
           <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-4">
             <div class="flex justify-between items-center">
               <div>
-                <h3 class="font-bold text-sm">Service Tickets & Replaced Component Tracking (Technician Portal)</h3>
-                <p class="text-[11px] text-slate-400">Track ticket status (Pending / Completed), time stamps, and automated customer notifications.</p>
+                <h3 class="font-bold text-sm">Service Tickets & Tier-Based Warranty Timeline</h3>
+                <p class="text-[11px] text-slate-400">Track warranty terms (Retail vs Wholesaler / Stock Extension) & component lifespan.</p>
               </div>
               <button onclick="app.showRetrofitServiceModal()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 font-bold text-xs rounded-xl text-white">+ Raise Service Ticket</button>
             </div>
-            <div class="space-y-2">
+            <div class="space-y-3">
               ${tickets.map(t => {
+                let effectiveDate = dispatchDateMap[t.coolerSn] || t.purchaseDate || '2026-01-01';
+                let pDate = new Date(effectiveDate);
+                
+                let totalWarrantyDays = 180;
+                if (t.saleCategory === 'MOTOR_WHOLESALE') totalWarrantyDays = 365;
+                else if (t.saleCategory === 'COOLER_RETAIL') totalWarrantyDays = 365;
+                else if (t.saleCategory === 'COOLER_WHOLESALE') {
+                  totalWarrantyDays = 90 + parseInt(t.extendedDays || 0);
+                }
+
+                let warrantyEnd = new Date(pDate);
+                warrantyEnd.setDate(warrantyEnd.getDate() + totalWarrantyDays);
+                let diffTime = warrantyEnd - today;
+                let remainingDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                let warrantyBadge = remainingDays > 0 
+                  ? `<span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 font-bold text-[10px]">Active Warranty (${remainingDays} days left)</span>` 
+                  : `<span class="px-2 py-0.5 rounded bg-rose-950 text-rose-400 font-bold text-[10px]">Warranty Expired</span>`;
+
+                let raisedDate = new Date(t.createdAt || effectiveDate);
+                let operatedDays = Math.max(1, Math.floor((raisedDate - pDate) / (1000 * 60 * 60 * 24)));
+
                 let statusBadge = t.status === 'COMPLETED' 
                   ? `<span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 font-bold text-[10px]">COMPLETED</span>` 
                   : `<span class="px-2 py-0.5 rounded bg-amber-950 text-amber-400 font-bold text-[10px]">PENDING</span>`;
+                
                 return `
-                  <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 text-xs flex justify-between items-center">
-                    <div>
+                  <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800 text-xs space-y-2">
+                    <div class="flex justify-between items-center">
                       <div class="flex items-center gap-2">
                         <span class="font-bold text-sky-400 font-mono">${t.ticketNo}</span> 
                         ${statusBadge}
                       </div>
-                      <p class="text-slate-300 mt-1">Phone: <strong class="text-emerald-400 font-mono text-sm">${t.mobile}</strong> | Customer: ${t.customerName}</p>
-                      <p class="text-slate-400 text-[11px]">Raised At: ${t.createdAt || 'N/A'} | Closed At: ${t.closedAt || 'In Progress'}</p>
-                      <p class="text-amber-400 text-[11px] mt-0.5 font-semibold">Complaint: ${t.complaintType} | Replaced: <strong>${t.componentName || 'Motor'}</strong></p>
+                      ${warrantyBadge}
                     </div>
-                    <div class="flex gap-1">
-                      <button onclick="app.toggleTicketStatus('${t.ticketNo}')" class="p-2 bg-indigo-900 text-indigo-200 rounded font-bold text-[10px]" title="Toggle Pending/Complete">Toggle Status</button>
-                      <button onclick="app.sendWhatsAppNotification('${t.mobile}', '${t.coolerSn}', '${t.ticketNo}', '${t.status}')" class="p-2 bg-emerald-900 text-emerald-300 rounded" title="Send WhatsApp Message with Time"><i class="fa-brands fa-whatsapp"></i></button>
-                      <button onclick="app.showRetrofitServiceModal('${t.ticketNo}')" title="Edit Ticket" class="p-2 bg-amber-950 text-amber-400 rounded"><i class="fa-solid fa-pen-to-square"></i></button>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2 text-slate-300">
+                      <div>Phone: <strong class="text-emerald-400 font-mono">${t.mobile}</strong> | Customer: ${t.customerName}</div>
+                      <div>Tier: <span class="text-amber-300 font-bold">${t.saleCategory || 'COOLER_RETAIL'}</span> | Start Date: <span class="font-mono text-sky-300">${effectiveDate}</span></div>
+                    </div>
+                    <div class="p-2 bg-slate-900 rounded-lg flex flex-wrap justify-between text-[11px] text-slate-400 font-mono border border-slate-800">
+                      <span>Complaint: <strong class="text-amber-400">${t.complaintType}</strong></span>
+                      <span>Part SN: <strong class="text-sky-400">${t.newPartSn || 'N/A'}</strong></span>
+                      <span>Lifespan: <strong class="text-emerald-400">${operatedDays} Days Operated</strong></span>
+                    </div>
+                    <div class="flex justify-end gap-1 pt-1">
+                      <button onclick="app.toggleTicketStatus('${t.ticketNo}')" class="px-2 py-1 bg-indigo-900 text-indigo-200 rounded font-bold text-[10px]">Toggle Status</button>
+                      <button onclick="app.sendWhatsAppNotification('${t.mobile}', '${t.coolerSn}', '${t.ticketNo}', '${t.status}')" class="px-2 py-1 bg-emerald-900 text-emerald-300 rounded"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
+                      <button onclick="app.showRetrofitServiceModal('${t.ticketNo}')" class="px-2 py-1 bg-amber-950 text-amber-400 rounded"><i class="fa-solid fa-pen-to-square"></i></button>
                     </div>
                   </div>
                 `;
@@ -1300,188 +1352,132 @@
         `;
       }
 
-      async toggleTicketStatus(ticketNo) {
-        let t = await dbGet('serviceTickets', ticketNo);
-        if (t) {
-          if (t.status === 'COMPLETED') {
-            t.status = 'PENDING';
-            t.closedAt = 'In Progress';
-          } else {
-            t.status = 'COMPLETED';
-            t.closedAt = new Date().toLocaleString();
-          }
-          await dbPut('serviceTickets', t);
-          this.navigate('service');
-        }
-      }
-
-      sendWhatsAppNotification(mobile, serviceCode, ticketNo, status) {
-        const timeNow = new Date().toLocaleString();
-        let msg = status === 'COMPLETED'
-          ? encodeURIComponent(`Hello! Your Cooler Service Ticket (${ticketNo}) for Unit ${serviceCode} has been successfully COMPLETED and closed at ${timeNow}. Thank you!`)
-          : encodeURIComponent(`Hello! Your Cooler Service Ticket (${ticketNo}) for Unit ${serviceCode} has been successfully REGISTERED/PENDING as of ${timeNow}. Our technician will update you soon.`);
-        window.open(`https://wa.me/91${mobile}?text=${msg}`, '_blank');
-      }
-
-      async showRetrofitServiceModal(editTicketNo = null) {
-        let existing = editTicketNo ? await dbGet('serviceTickets', editTicketNo) : null;
-        const todayStr = new Date().toISOString().split('T')[0];
-        const complaints = await dbGetAll('complaintTypes');
-        
-        const inhouse = await dbGetAll('motors');
-        const outsourced = await dbGetAll('outsourcedMotors');
-        const freeMotors = [
-          ...inhouse.filter(m => !m.coolerSn).map(m => ({ sn: m.sn, name: `${m.model} (In-House)` })),
-          ...outsourced.filter(o => !o.coolerSn).map(o => ({ sn: o.outSn, name: `${o.model} (${o.vendorName})` }))
-        ];
-
-        document.getElementById('dynamic-modal-container').innerHTML = `
-          <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-            <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-md w-full p-5 space-y-3 max-h-[90vh] overflow-y-auto">
-              <div class="flex justify-between border-b border-slate-800 pb-2"><h3 class="font-bold text-sm">${existing ? 'Edit Service Ticket Details' : 'Raise Service Ticket (Serial Provision)'}</h3><button onclick="app.closeModal()"><i class="fa-solid fa-xmark"></i></button></div>
-              <form onsubmit="app.saveRetrofitServiceRequest(event, ${existing ? `'${existing.ticketNo}'` : 'null'})" class="space-y-3 text-xs">
-                <div><label class="block mb-1">Customer Name *</label><input type="text" id="sr-cname" value="${existing ? existing.customerName : ''}" placeholder="e.g. Ramesh Kumar" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 font-bold"></div>
-                <div class="grid grid-cols-2 gap-2">
-                  <div><label class="block mb-1 font-bold text-emerald-400">Mobile Number *</label><input type="text" id="sr-mobile" value="${existing ? existing.mobile : ''}" required placeholder="9502229213" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 font-mono font-bold text-emerald-400"></div>
-                  <div><label class="block mb-1">Purchase Date *</label><input type="date" id="sr-pdate" value="${existing ? existing.purchaseDate : todayStr}" onchange="app.toggleSerialInputMode()" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2"></div>
-                </div>
-                <div><label class="block mb-1">Cooler Model Name</label><input type="text" id="sr-model" value="${existing ? (existing.coolerModel || 'Novetech Air Cooler 70L') : 'Novetech Air Cooler 70L'}" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2"></div>
-                
-                <!-- DROPDOWN PROVISION: Non-Serial vs Serial -->
-                <div class="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
-                  <label class="block font-semibold text-sky-400">Product Serial Provision Type *</label>
-                  <select id="sr-serial-mode" onchange="app.toggleSerialInputMode()" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 font-bold text-slate-100">
-                    <option value="AUTO">Non-Serial (Auto-Generated Serial Number)</option>
-                    <option value="MANUAL">Serial (Manual Entry / Scanner)</option>
-                  </select>
-
-                  <div id="sr-manual-serial-box" class="hidden pt-2 space-y-1">
-                    <label class="block text-[11px] text-slate-400">Enter or Scan Serial Number:</label>
-                    <div class="flex gap-2">
-                      <input type="text" id="sr-manual-sn" value="${existing ? existing.coolerSn : ''}" placeholder="Scan or type serial number..." class="flex-1 bg-slate-900 border border-slate-800 rounded-xl p-2 font-mono text-sky-400 font-bold">
-                      <button type="button" onclick="app.openScannerModal('sr-manual-sn')" class="px-2.5 py-1 bg-sky-600 text-white font-bold rounded-xl"><i class="fa-solid fa-camera"></i> Scan</button>
-                    </div>
-                  </div>
-
-                  <div id="sr-auto-serial-box" class="pt-1">
-                    <span class="text-[10px] text-slate-400">Auto-Generated Serial Number:</span>
-                    <p id="sr-sn-preview" class="font-mono font-bold text-emerald-400 text-sm mt-0.5">${existing ? existing.coolerSn : 'CLR-20260810-961'}</p>
-                  </div>
-                </div>
-
-                <div>
-                  <div class="flex justify-between mb-1"><label>Complaint Type</label><button type="button" onclick="app.addNewComplaintType()" class="text-sky-400 underline">+ Add Type</button></div>
-                  <select id="sr-complaint" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2">${complaints.map(c => `<option ${existing && existing.complaintType===c.name?'selected':''}>${c.name}</option>`).join('')}</select>
-                </div>
-
-                <div class="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
-                  <span class="font-bold text-amber-400">Auto-Fetch Replacement Stock Motor/Part</span>
-                  <div>
-                    <label class="block text-slate-400 mb-1">Select Free Available Motor *</label>
-                    <select id="sr-inventory-fetch" onchange="document.getElementById('sr-newsn').value=this.value" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 font-bold text-emerald-400">
-                      <option value="">-- Choose Free Motor to Issue --</option>
-                      ${freeMotors.map(fm => `<option value="${fm.sn}">${fm.name} [SN: ${fm.sn}]</option>`).join('')}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label class="block text-slate-300 font-semibold mb-1">Main Component Name *</label>
-                    <input type="text" id="sr-comp-name" value="${existing ? (existing.componentName || 'Cooler Motor Assembly') : 'Cooler Motor Assembly'}" required class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2 text-slate-100 font-bold">
-                  </div>
-                  <div>
-                    <label class="block text-slate-400 mb-1">Defective Old Part SN (Scan Barcode)</label>
-                    <div class="flex gap-2">
-                      <input type="text" id="sr-oldsn" value="${existing ? (existing.oldPartSn || '') : ''}" placeholder="OLD-PART-2026" class="flex-1 bg-slate-900 border border-slate-800 rounded-lg p-1.5 text-rose-300 font-mono">
-                      <button type="button" onclick="app.openScannerModal('sr-oldsn')" class="px-2 py-1 bg-sky-600 text-white rounded text-[10px]"><i class="fa-solid fa-camera"></i> Scan</button>
-                    </div>
-                  </div>
-                  <div>
-                    <label class="block text-slate-400 mb-1">New Issued Part SN (Scan Barcode)</label>
-                    <div class="flex gap-2">
-                      <input type="text" id="sr-newsn" value="${existing ? (existing.newPartSn || '') : ''}" placeholder="NEW-PART-2026" class="flex-1 bg-slate-900 border border-slate-800 rounded-lg p-1.5 text-emerald-300 font-mono">
-                      <button type="button" onclick="app.openScannerModal('sr-newsn')" class="px-2 py-1 bg-sky-600 text-white rounded text-[10px]"><i class="fa-solid fa-camera"></i> Scan</button>
-                    </div>
-                  </div>
-                </div>
-
-                <button type="submit" class="w-full py-2.5 bg-emerald-600 font-bold rounded-xl text-white mt-2">${existing ? 'Update Service Ticket' : 'Raise Service Ticket & Notify'}</button>
-              </form>
+      async renderDispatch(c) {
+        const dispatches = await dbGetAll('dispatches');
+        c.innerHTML = `
+          <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-4">
+            <div class="flex justify-between items-center">
+              <div>
+                <h3 class="font-bold text-sm">Wholesaler Dispatch & Scan-to-Activate Warranty</h3>
+                <p class="text-[11px] text-slate-400">Scan units during dispatch to set exact warranty start date.</p>
+              </div>
+              <button onclick="app.showDispatchModal()" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 font-bold text-xs rounded-xl text-white">+ New Dispatch Entry</button>
+            </div>
+            <div class="bg-slate-950 border border-slate-800 rounded-xl overflow-x-auto">
+              <table class="w-full text-left text-xs text-slate-300">
+                <thead class="bg-slate-900 text-slate-400 font-mono uppercase border-b border-slate-800">
+                  <tr><th class="p-3">Dispatch ID</th><th class="p-3">Wholesaler Name</th><th class="p-3">Dispatch Date</th><th class="p-3">Items Count</th><th class="p-3 text-right">Action</th></tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800">
+                  ${dispatches.length > 0 ? dispatches.map(d => `
+                    <tr>
+                      <td class="p-3 font-mono font-bold text-sky-400">${d.dispatchId}</td>
+                      <td class="p-3 font-bold text-slate-100">${d.wholesalerName}</td>
+                      <td class="p-3 font-mono text-slate-300">${d.dispatchDate}</td>
+                      <td class="p-3"><span class="px-2 py-0.5 bg-indigo-950 text-indigo-300 rounded font-bold">${d.scannedItems ? d.scannedItems.length : 0} Units</span></td>
+                      <td class="p-3 text-right">
+                        <button onclick="app.deleteDispatch('${d.dispatchId}')" class="p-1.5 bg-rose-950 text-rose-400 rounded"><i class="fa-solid fa-trash"></i></button>
+                      </td>
+                    </tr>
+                  `).join('') : `<tr><td colspan="5" class="p-4 text-center text-slate-500 italic">No dispatch records found.</td></tr>`}
+                </tbody>
+              </table>
             </div>
           </div>
         `;
-        if (!existing) this.previewGeneratedSN();
-        this.toggleSerialInputMode();
       }
 
-      toggleSerialInputMode() {
-        const mode = document.getElementById('sr-serial-mode')?.value;
-        const manualBox = document.getElementById('sr-manual-serial-box');
-        const autoBox = document.getElementById('sr-auto-serial-box');
-        if (!manualBox || !autoBox) return;
+      showDispatchModal() {
+        this.dispatchScanList = [];
+        const todayStr = new Date().toISOString().split('T')[0];
+        document.getElementById('dynamic-modal-container').innerHTML = `
+          <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-lg w-full p-5 space-y-4 max-h-[90vh] overflow-y-auto">
+              <div class="flex justify-between border-b border-slate-800 pb-2"><h3 class="font-bold text-sm text-sky-400">Wholesaler Dispatch Scan</h3><button onclick="app.closeModal()"><i class="fa-solid fa-xmark"></i></button></div>
+              <div class="space-y-3 text-xs">
+                <div><label class="block mb-1 font-semibold">Wholesaler / Party Name *</label><input type="text" id="dsp-name" required placeholder="Enter Wholesaler Name..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 font-bold"></div>
+                <div><label class="block mb-1 font-semibold">Dispatch Date (Warranty Start) *</label><input type="date" id="dsp-date" value="${todayStr}" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 font-mono"></div>
+                
+                <div class="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
+                  <span class="font-bold text-slate-300">Scan or Enter Unit/Motor Serial Number</span>
+                  <div class="flex gap-2">
+                    <input type="text" id="dsp-scan-input" placeholder="Scan or type SN..." class="flex-1 bg-slate-900 border border-slate-800 rounded-xl p-2 font-mono text-sky-400 font-bold">
+                    <button type="button" onclick="app.openScannerModal('dsp-scan-input', true)" class="px-2.5 py-1 bg-sky-600 text-white font-bold rounded-xl"><i class="fa-solid fa-camera"></i> Scan</button>
+                    <button type="button" onclick="app.addDispatchItem()" class="px-2.5 py-1 bg-indigo-600 text-white font-bold rounded-xl">+ Add</button>
+                  </div>
+                </div>
+                
+                <div>
+                  <label class="block mb-1 font-semibold">Dispatched Items Queue (<span id="dsp-count">0</span>)</label>
+                  <div id="dsp-chips" class="flex flex-wrap gap-2 p-2.5 bg-slate-950 border border-slate-800 rounded-xl min-h-[70px] max-h-[140px] overflow-y-auto">
+                    <span class="text-slate-500 italic text-[11px]">No items added yet. Scan unit codes.</span>
+                  </div>
+                </div>
 
-        if (mode === 'MANUAL') {
-          manualBox.classList.remove('hidden');
-          autoBox.classList.add('hidden');
-        } else {
-          manualBox.classList.add('hidden');
-          autoBox.classList.remove('hidden');
-          this.previewGeneratedSN();
+                <button type="button" onclick="app.saveDispatchRecord()" class="w-full py-2.5 bg-emerald-600 font-bold rounded-xl text-white mt-2">Complete Dispatch & Activate Warranty</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }
+
+      addDispatchItem() {
+        const inp = document.getElementById('dsp-scan-input');
+        const val = inp.value.trim();
+        if(!val) { alert('Please scan or enter serial number.'); return; }
+        if(this.dispatchScanList.includes(val)) { alert('Already added in queue.'); return; }
+        this.dispatchScanList.push(val);
+        inp.value = '';
+        inp.focus();
+        
+        const chipsContainer = document.getElementById('dsp-chips');
+        const countSpan = document.getElementById('dsp-count');
+        if(chipsContainer && countSpan) {
+          countSpan.innerText = this.dispatchScanList.length;
+          chipsContainer.innerHTML = this.dispatchScanList.map(sn => `
+            <span class="px-2 py-1 bg-sky-950 border border-sky-800 text-sky-300 rounded-lg text-xs font-mono font-bold flex items-center gap-2">
+              <span>${sn}</span>
+            </span>
+          `).join('');
         }
       }
 
-      async addNewComplaintType() {
-        const val = prompt('Enter New Complaint Description:');
-        if (val && val.trim()) {
-          await dbPut('complaintTypes', { name: val.trim() });
-          this.showRetrofitServiceModal();
-        }
-      }
+      async saveDispatchRecord() {
+        const name = document.getElementById('dsp-name').value.trim();
+        const date = document.getElementById('dsp-date').value;
+        if(!name) { alert('Please enter wholesaler name.'); return; }
+        if(this.dispatchScanList.length === 0) { alert('Please scan at least one unit for dispatch.'); return; }
 
-      previewGeneratedSN() {
-        const mode = document.getElementById('sr-serial-mode')?.value;
-        if (mode === 'MANUAL') return;
-
-        const pdate = document.getElementById('sr-pdate')?.value || new Date().toISOString().split('T')[0];
-        const cleanDate = pdate.replace(/-/g, '');
-        const randomCode = Math.floor(Math.random() * 899 + 100);
-        const generatedSN = `CLR-${cleanDate}-${randomCode}`;
-        const preview = document.getElementById('sr-sn-preview');
-        if (preview) preview.innerText = generatedSN;
-      }
-
-      async saveRetrofitServiceRequest(e, editTicketNo = null) {
-        e.preventDefault();
-        const mode = document.getElementById('sr-serial-mode').value;
-        let finalSN = '';
-
-        if (mode === 'MANUAL') {
-          finalSN = document.getElementById('sr-manual-sn').value.trim();
-          if (!finalSN) { alert('Please enter or scan the product serial number.'); return; }
-        } else {
-          finalSN = document.getElementById('sr-sn-preview').innerText;
-        }
-
-        const cname = document.getElementById('sr-cname').value;
-        const mobile = document.getElementById('sr-mobile').value.trim();
-        const pdate = document.getElementById('sr-pdate').value;
-
-        const ticketKey = editTicketNo ? editTicketNo : ('TCK-' + Math.floor(Math.random() * 899 + 100));
-        const timestampNow = new Date().toLocaleString();
-
-        await dbPut('serviceTickets', {
-          ticketNo: ticketKey, coolerSn: finalSN, customerName: cname, mobile: mobile, purchaseDate: pdate, coolerModel: document.getElementById('sr-model').value, complaintType: document.getElementById('sr-complaint').value, componentName: document.getElementById('sr-comp-name').value, oldPartSn: document.getElementById('sr-oldsn').value || 'DEF-2026', newPartSn: document.getElementById('sr-newsn').value || 'NEW-2026', status: 'PENDING', createdAt: timestampNow, closedAt: 'In Progress'
+        const dispatchId = 'DSP-' + Math.floor(Math.random() * 8999 + 1000);
+        await dbPut('dispatches', {
+          dispatchId, wholesalerName: name, dispatchDate: date, scannedItems: this.dispatchScanList
         });
 
-        await dbPut('customers', { mobile: mobile, name: cname, coolerSn: finalSN, purchaseDate: pdate, type: 'Retailer' });
-        await dbPut('coolers', { sn: finalSN, name: document.getElementById('sr-model').value, fitter: 'Service Ticket Linked', date: pdate });
-
-        alert(`Service Ticket Raised & Synced! Ticket No: ${ticketKey} | Serial: ${finalSN}`);
+        alert(`Dispatch Saved & Warranty Activated from ${date}!`);
         this.closeModal();
-        this.navigate('service');
+        this.navigate('dispatch');
+      }
+
+      async deleteDispatch(dispatchId) {
+        if(confirm(`Delete dispatch record ${dispatchId}?`)) {
+          await dbDelete('dispatches', dispatchId);
+          this.navigate('dispatch');
+        }
       }
 
       async renderCustomers(c) {
         let customers = await dbGetAll('customers');
+        const tickets = await dbGetAll('serviceTickets');
+        
+        if(customers.length === 0 && tickets.length > 0) {
+          for(let t of tickets) {
+            if(t.mobile && t.mobile !== 'NA') {
+              await dbPut('customers', { mobile: t.mobile, name: t.customerName || 'Customer', coolerSn: t.coolerSn, purchaseDate: t.purchaseDate || '2026-08-11', type: 'Retailer' });
+            }
+          }
+          customers = await dbGetAll('customers');
+        }
+
         const uniqueMap = {};
         customers.forEach(cust => {
           let phoneKey = (cust.mobile && cust.mobile.trim() !== '' && cust.mobile !== 'NA') ? cust.mobile.trim() : ('NA_' + Math.random());
@@ -1514,22 +1510,49 @@
       }
 
       async renderInventory(c) {
+        const inventoryParts = await dbGetAll('replacementInventory');
         const inhouse = await dbGetAll('motors');
         const outsourced = await dbGetAll('outsourcedMotors');
-        const freeInhouse = inhouse.filter(m => !m.coolerSn);
-        const freeOutsourced = outsourced.filter(o => !o.coolerSn);
+        const freeInhouse = inhouse.filter(m => !m.coolerSn || m.coolerSn.trim() === '');
+        const freeOutsourced = outsourced.filter(o => !o.coolerSn || o.coolerSn.trim() === '');
 
         c.innerHTML = `
           <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-4">
             <div class="flex justify-between items-center">
-              <div><h3 class="font-bold text-sm">Replacement Parts & Unassigned Stock</h3></div>
+              <div>
+                <h3 class="font-bold text-sm">Replacement Parts Inventory & Stock Management</h3>
+                <p class="text-[11px] text-slate-400">Add spare parts with Serial or Non-Serial (Auto-Generated) provision.</p>
+              </div>
+              <button onclick="app.showAddInventoryPartModal()" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 font-bold text-xs rounded-xl text-white">+ Add Spare Part</button>
             </div>
+
+            <div class="bg-slate-950 border border-slate-800 rounded-xl overflow-x-auto">
+              <table class="w-full text-left text-xs text-slate-300">
+                <thead class="bg-slate-900 text-slate-400 font-mono uppercase border-b border-slate-800">
+                  <tr><th class="p-3">Part Code / SN</th><th class="p-3">Part Name</th><th class="p-3">Type</th><th class="p-3 text-right">Actions</th></tr>
+                </thead>
+                <tbody class="divide-y divide-slate-800">
+                  ${inventoryParts.length > 0 ? inventoryParts.map(p => `
+                    <tr>
+                      <td class="p-3 font-mono font-bold text-sky-400">${p.partCode}</td>
+                      <td class="p-3 font-bold text-slate-100">${p.partName}</td>
+                      <td class="p-3"><span class="px-2 py-0.5 bg-purple-950 text-purple-300 rounded font-bold">${p.serialType || 'SERIAL'}</span></td>
+                      <td class="p-3 text-right">
+                        <button onclick="app.deleteInventoryPart('${p.partCode}')" class="p-1.5 bg-rose-950 text-rose-400 rounded"><i class="fa-solid fa-trash"></i></button>
+                      </td>
+                    </tr>
+                  `).join('') : `<tr><td colspan="4" class="p-4 text-center text-slate-500 italic">No replacement spare parts added yet.</td></tr>`}
+                </tbody>
+              </table>
+            </div>
+
             <div class="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
               <span class="font-bold text-sky-400 text-xs">Unassigned In-House Motors Available (${freeInhouse.length})</span>
               <div class="flex flex-wrap gap-1">
                 ${freeInhouse.length > 0 ? freeInhouse.map(m => `<span class="px-2 py-0.5 bg-sky-950 border border-sky-800 text-sky-300 rounded text-[10px] font-mono">SN: ${m.sn} (${m.model})</span>`).join('') : '<span class="text-slate-500 text-xs">All bound in coolers.</span>'}
               </div>
             </div>
+
             <div class="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-2">
               <span class="font-bold text-amber-400 text-xs">Unassigned Outsourced Motors Available (${freeOutsourced.length})</span>
               <div class="flex flex-wrap gap-1">
@@ -1538,6 +1561,73 @@
             </div>
           </div>
         `;
+      }
+
+      showAddInventoryPartModal() {
+        const autoCode = 'PART-' + Math.floor(Math.random() * 8999 + 1000);
+        document.getElementById('dynamic-modal-container').innerHTML = `
+          <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-5 space-y-3">
+              <div class="flex justify-between border-b border-slate-800 pb-2"><h3 class="font-bold text-sm">Add Replacement Spare Part</h3><button onclick="app.closeModal()"><i class="fa-solid fa-xmark"></i></button></div>
+              <form onsubmit="app.saveInventoryPart(event)" class="space-y-3 text-xs">
+                <div><label class="block mb-1 font-semibold">Spare Part Name *</label><input type="text" id="inv-name" required placeholder="e.g. Water Pump / Swing Motor" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 font-bold"></div>
+                <div>
+                  <label class="block mb-1 font-semibold">Serial Provision Type *</label>
+                  <select id="inv-serial-type" onchange="app.toggleInvSerialMode()" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 font-bold text-sky-400">
+                    <option value="AUTO">Without Serial Number (Auto-Generate)</option>
+                    <option value="SERIAL">With Serial Number (Manual / Scan)</option>
+                  </select>
+                </div>
+
+                <div id="inv-code-box">
+                  <label class="block mb-1 font-semibold">Part Code / Serial Number *</label>
+                  <div class="flex gap-2">
+                    <input type="text" id="inv-code" value="${autoCode}" placeholder="Enter or scan SN..." class="flex-1 bg-slate-950 border border-slate-800 rounded-xl p-2 font-mono font-bold text-emerald-400">
+                    <button type="button" onclick="app.openScannerModal('inv-code')" class="px-2.5 py-1 bg-sky-600 text-white font-bold rounded-xl"><i class="fa-solid fa-camera"></i> Scan</button>
+                  </div>
+                </div>
+
+                <button type="submit" class="w-full py-2.5 bg-sky-600 font-bold rounded-xl text-white mt-2">Save Spare Part & Sync</button>
+              </form>
+            </div>
+          </div>
+        `;
+        this.toggleInvSerialMode();
+      }
+
+      toggleInvSerialMode() {
+        const type = document.getElementById('inv-serial-type')?.value;
+        const codeInput = document.getElementById('inv-code');
+        if(!codeInput) return;
+        if(type === 'AUTO') {
+          codeInput.value = 'PART-' + Math.floor(Math.random() * 8999 + 1000);
+          codeInput.readOnly = true;
+        } else {
+          codeInput.value = '';
+          codeInput.readOnly = false;
+          codeInput.placeholder = 'Scan or type serial number...';
+        }
+      }
+
+      async saveInventoryPart(e) {
+        e.preventDefault();
+        const partName = document.getElementById('inv-name').value.trim();
+        const serialType = document.getElementById('inv-serial-type').value;
+        const partCode = document.getElementById('inv-code').value.trim();
+
+        if(!partCode) { alert('Please provide part code or serial number.'); return; }
+
+        await dbPut('replacementInventory', { partCode, partName, serialType });
+        alert('Spare Part Saved & Synced Successfully!');
+        this.closeModal();
+        this.navigate('inventory');
+      }
+
+      async deleteInventoryPart(partCode) {
+        if(confirm(`Delete spare part ${partCode}?`)) {
+          await dbDelete('replacementInventory', partCode);
+          this.navigate('inventory');
+        }
       }
 
       openScannerModal(targetElemId = null, isBatchQueue = false) {
@@ -1565,6 +1655,7 @@
                 
                 if (this.activeScanTarget === 'bm-scan-input') { app.addMotorToBatchQueue(); }
                 else if (this.activeScanTarget === 'bc-scan-input') { app.addCoolerToBatchQueue(); }
+                else if (this.activeScanTarget === 'dsp-scan-input') { app.addDispatchItem(); }
               }
             } else {
               async function lookupScannedItem(code) {
