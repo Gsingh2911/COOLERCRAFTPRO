@@ -91,7 +91,7 @@
 
             <div>
                 <label id="lbl-pass" class="block mb-1 font-semibold text-slate-300">Password</label>
-                <input type="password" id="login-pass" required value="admin123" placeholder="••••••••" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100">
+                <input type="password" id="login-pass" required placeholder="••••••••" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-slate-100">
             </div>
 
             <button type="submit" id="btn-signin" class="w-full py-3 bg-gradient-to-r from-sky-500 to-indigo-600 hover:from-sky-400 hover:to-indigo-500 text-white font-bold rounded-xl shadow-lg shadow-sky-500/20 text-sm">
@@ -100,7 +100,7 @@
 
             <div class="flex justify-between items-center pt-2 text-[11px]">
                 <button type="button" onclick="app.showPasswordResetModal()" id="link-forgot" class="text-sky-400 hover:underline">Forgot / Reset Password?</button>
-                <span class="text-slate-500">Default Pass: <strong>admin123</strong></span>
+                <span class="text-slate-500">Persistent Storage Enabled</span>
             </div>
         </form>
     </div>
@@ -260,6 +260,21 @@
                 <div id="pdf-replacement-container" class="space-y-1.5 pt-1"></div>
             </div>
 
+            <div id="pdf-pricing-box" class="space-y-2 border border-slate-200 p-4 rounded-xl bg-slate-50 shadow-sm space-y-1">
+                <div class="flex justify-between items-center text-xs">
+                    <span class="font-bold text-indigo-900 uppercase tracking-wide">Parts Cost:</span>
+                    <span id="pdf-parts-price" class="font-mono font-bold text-slate-800">₹0</span>
+                </div>
+                <div class="flex justify-between items-center text-xs">
+                    <span class="font-bold text-indigo-900 uppercase tracking-wide">Manpower / Labor Service Charge:</span>
+                    <span id="pdf-labor-price" class="font-mono font-bold text-slate-800">₹0</span>
+                </div>
+                <div class="flex justify-between items-center border-t border-slate-200 pt-1.5">
+                    <span class="font-bold text-indigo-900 uppercase tracking-wide text-xs"><i class="fa-solid fa-indian-rupee-sign text-indigo-600"></i> Total Repair / Service Amount</span>
+                    <span id="pdf-repair-price" class="text-sm font-mono font-black text-emerald-700">₹0</span>
+                </div>
+            </div>
+
             <div class="pt-4 border-t-2 border-slate-200 text-center text-[10px] text-slate-500 font-medium">
                 <p>This is a certified computer-generated service job sheet from <strong>Sri Devi Enterprises</strong> (CoolerCraft Pro Platform). No signature required.</p>
             </div>
@@ -278,7 +293,7 @@
 
 <!-- MOTOR QC TESTING LOG REPORT MODAL -->
 <div id="motor-qc-log-modal" class="fixed inset-0 bg-slate-950/85 backdrop-blur-md z-50 hidden items-center justify-center p-4">
-    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-xl w-full p-6 flex flex-col space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 flex flex-col space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
         <div class="w-full flex justify-between items-center border-b border-slate-800 pb-3 no-print">
             <span class="text-sm font-bold text-sky-400 flex items-center gap-2"><i class="fa-solid fa-microchip"></i> Certified Motor QC Test Report Log</span>
             <button onclick="app.closeModal('motor-qc-log-modal')" class="text-slate-400 hover:text-white p-1"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -306,27 +321,21 @@
             </div>
 
             <div class="space-y-2">
-                <h3 class="font-bold text-slate-900 uppercase mb-2 text-xs border-b border-slate-200 pb-1">Tested Electrical Parameters</h3>
-                <table class="w-full text-left border-collapse border border-slate-300 rounded-lg overflow-hidden">
-                    <thead class="bg-slate-100 font-mono text-slate-700">
-                    <tr>
-                        <th class="border border-slate-300 p-2.5">Parameter</th>
-                        <th class="border border-slate-300 p-2.5">Standard Spec</th>
-                        <th class="border border-slate-300 p-2.5">Measured Result</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    <tr><td class="border border-slate-300 p-2.5 font-bold">Voltage</td><td class="border border-slate-300 p-2.5 text-slate-600">230 V</td><td id="qc-log-v" class="border border-slate-300 p-2.5 font-mono text-emerald-700 font-bold">230 V</td></tr>
-                    <tr><td class="border border-slate-300 p-2.5 font-bold">Current</td><td class="border border-slate-300 p-2.5 text-slate-600">0.48 A</td><td id="qc-log-i" class="border border-slate-300 p-2.5 font-mono text-emerald-700 font-bold">0.48 A</td></tr>
-                    <tr><td class="border border-slate-300 p-2.5 font-bold">Power Rating</td><td class="border border-slate-300 p-2.5 text-slate-600">110 W</td><td id="qc-log-w" class="border border-slate-300 p-2.5 font-mono text-sky-700 font-bold">110 W</td></tr>
-                    <tr><td class="border border-slate-300 p-2.5 font-bold">RPM Speed</td><td class="border border-slate-300 p-2.5 text-slate-600">1380 RPM</td><td id="qc-log-rpm" class="border border-slate-300 p-2.5 font-mono text-indigo-700 font-bold">1380 RPM</td></tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="space-y-1.5">
-                <h3 class="font-bold text-slate-900 uppercase mb-1 text-xs">Tested Serial Numbers in Batch</h3>
-                <div id="qc-log-sn-list" class="p-3 bg-slate-50 rounded-xl border border-slate-200 font-mono text-[11px] text-slate-800 max-h-32 overflow-y-auto"></div>
+                <h3 class="font-bold text-slate-900 uppercase mb-2 text-xs border-b border-slate-200 pb-1">Individual Tested Parameters per Serial Number</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse border border-slate-300 rounded-lg overflow-hidden text-xs">
+                        <thead class="bg-slate-100 font-mono text-slate-700">
+                        <tr>
+                            <th class="border border-slate-300 p-2">Serial Number (SN)</th>
+                            <th class="border border-slate-300 p-2">Voltage</th>
+                            <th class="border border-slate-300 p-2">Current</th>
+                            <th class="border border-slate-300 p-2">Wattage (W)</th>
+                            <th class="border border-slate-300 p-2">RPM</th>
+                        </tr>
+                        </thead>
+                        <tbody id="qc-log-table-body"></tbody>
+                    </table>
+                </div>
             </div>
 
             <div class="pt-4 border-t border-slate-200 text-center text-[11px] text-slate-500 font-medium">
@@ -334,9 +343,12 @@
             </div>
         </div>
 
-        <div class="flex gap-3 w-full no-print pt-2">
+        <div class="flex flex-wrap gap-2 w-full no-print pt-2">
             <button onclick="app.printMotorQcLog()" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 font-bold text-white rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg">
-                <i class="fa-solid fa-print"></i> Print / Save QC Test Log PDF
+                <i class="fa-solid fa-print"></i> Print / Save PDF
+            </button>
+            <button onclick="app.exportMotorQcExcel()" class="flex-1 py-3 bg-indigo-600 hover:bg-indigo-500 font-bold text-white rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg">
+                <i class="fa-solid fa-file-excel"></i> Export Excel (CSV)
             </button>
             <button onclick="app.closeModal('motor-qc-log-modal')" class="px-5 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-bold">
                 Close
@@ -402,8 +414,8 @@
       cloudDb = firebase.firestore();
     } catch(e) {}
 
-    const DB_NAME = 'CoolerCraftProDB_SriDeviEnterprises_V20';
-    const DB_Version = 70;
+    const DB_NAME = 'CoolerCraftProDB_SriDeviEnterprises_V32';
+    const DB_Version = 82;
     let db = null;
 
     const DEFAULT_STORES = ['motors', 'outsourcedMotors', 'coolers', 'customers', 'serviceTickets', 'replacementInventory', 'complaintTypes', 'auditLogs', 'users', 'dispatches'];
@@ -416,50 +428,6 @@
       hi: {
         role: "भूमिका / पद चुनें", username: "उपयोगकर्ता नाम / कर्मचारी आईडी", password: "पासवर्ड", signin: "सुरक्षित पोर्टल में प्रवेश करें", forgot: "पासवर्ड रीसेट करें?",
         dashboard: "डैशबोर्ड", motorProd: "मोटर उत्पादन", outsourced: "बाहरी मोटर", motorQc: "मोटर क्यूसी", coolerAsm: "कूलर असेंबली", coolerQc: "कूलर क्यूसी", dispatch: "प्रेषण (डिस्पैच)", service: "सेवा (सर्विस)", customers: "ग्राहक", inventory: "पुर्जे स्टॉक", users: "आईडी और पासवर्ड"
-      },
-      te: {
-        role: "పాత్ర / హోదాను ఎంచుకోండి", username: "యూజర్ పేరు / ఉద్యోగి ఐడి", password: "పాస్‌వర్డ్", signin: "సురక్షిత పోర్టల్‌లోకి సైన్ ఇన్ చేయండి", forgot: "పాస్‌వర్డ్ మర్చిపోయారా?",
-        dashboard: "డాష్‌బోర్డ్", motorProd: "మోటార్ తయారీ", outsourced: "బయటి మోటార్లు", motorQc: "మోటార్ క్వాలిటీ", coolerAsm: "కూలర్ అసెంబ్లీ", coolerQc: "కూలర్ క్వాలిటీ", dispatch: "డిస్పాచ్", service: "సర్వీస్", customers: "కస్టమర్లు", inventory: "స్పేర్ పార్ట్స్", users: "యూజర్లు"
-      },
-      ta: {
-        role: "பதவி / பாத்திரத்தைத் தேர்ந்தெடுக்கவும்", username: "பயனர் பெயர் / ஊழியர் ஐடி", password: "கடவுச்சொல்", signin: "உள்நுழைக", forgot: "கடவுச்சொல் மறந்துவிட்டதா?",
-        dashboard: "முகப்பு", motorProd: "மோட்டார் உற்பத்தி", outsourced: "வெளி மோட்டார்கள்", motorQc: "மோட்டார் தரச்சான்று", coolerAsm: "கூலர் இணைப்பு", coolerQc: "கூலர் தரச்சான்று", dispatch: "அனுப்புதல்", service: "சேவை", customers: "வாடிக்கையாளர்கள்", inventory: "உதிரிபாகங்கள்", users: "பயனர்கள்"
-      },
-      kn: {
-        role: "ಪಾತ್ರ / ಹುದ್ದೆಯನ್ನು ಆಯ್ಕೆಮಾಡಿ", username: "ಬಳಕೆದಾರ ಹೆಸರು / ನೌಕರರ ಐಡಿ", password: "ಪಾಸ್‌ವರ್ಡ್", signin: "ಸೈನ್ ಇನ್ ಮಾಡಿ", forgot: "ಪಾಸ್‌ವರ್ಡ್ ಮರೆತಿರುವಿರಾ?",
-        dashboard: "ಡ್ಯಾಶ್‌ಬોર્ಡ್", motorProd: "ಮೋಟಾರ್ ಉತ್ಪಾದನೆ", outsourced: "ಹೊರಗಿನ ಮೋಟಾರ್", motorQc: "ಮೋಟಾರ್ ಗುಣಮಟ್ಟ", coolerAsm: "ಕೂಲರ್ ಜೋಡಣೆ", coolerQc: "ಕೂಲರ್ ಗುಣಮಟ್ಟ", dispatch: "ಕಳುಹಿಸುವಿಕೆ", service: "ಸೇವೆ", customers: "ಗ್ರಾಹಕರು", inventory: "ಭಾಗಗಳ ಸ್ಟಾಕ್", users: "ಬಳಕೆದಾರರು"
-      },
-      ml: {
-        role: "പങ്ക് / പദവി തിരഞ്ഞെടുക്കുക", username: "ഉപയോക്തൃനാമം / എംപ്ലോയി ഐഡി", password: "പാസ്‌വേഡ്", signin: "ലോഗിൻ ചെയ്യുക", forgot: "പാസ്‌വേഡ് മറന്നുപോയോ?",
-        dashboard: "ഡാഷ്‌ബോർഡ്", motorProd: "മോട്ടോർ നിർമ്മാണം", outsourced: "പുറം മോട്ടോറുകൾ", motorQc: "മോട്ടോർ ക്യുസി", coolerAsm: "കൂളർ അസംബ്ലി", coolerQc: "കൂളർ ക്യുസി", dispatch: "ഡിസ്പാച്ച്", service: "സർവീസ്", customers: "ഉപഭോക്താക്കൾ", inventory: "സ്പെയർ സ്റ്റോക്ക്", users: "ഉപയോക്താക്കൾ"
-      },
-      mr: {
-        role: "भूमिका / पद निवडा", username: "वापरकर्ता नाव / कर्मचारी आयडी", password: "पासवर्ड", signin: "सुरक्षित पोर्टलमध्ये प्रवेश करा", forgot: "पासवर्ड विसरलात?",
-        dashboard: "डॅशबोर्ड", motorProd: "मोटार उत्पादन", outsourced: "बाह्य मोटार", motorQc: "मोटार गुणवत्ता", coolerAsm: "कुलर जुळणी", coolerQc: "कुलर गुणवत्ता", dispatch: "प्रेषण", service: "सेवा", customers: "ग्राहक", inventory: "सुटे भाग स्टॉक", users: "वापरकर्ते"
-      },
-      gu: {
-        role: "ભૂમિકા / પદ પસંદ કરો", username: "યુઝર નામ / કર્મચારી આઈડી", password: "પાસવર્ડ", signin: "સાઇન ઇન કરો", forgot: "પાસવર્ડ ભૂલી ગયા?",
-        dashboard: "ડેશબોર્ડ", motorProd: "મોટર ઉત્પાદન", outsourced: "બહારની મોટર", motorQc: "મોટર ગુણવત્તા", coolerAsm: "કૂલર એસેમ્બલી", coolerQc: "કૂલર ગુણવત્તા", dispatch: "ડિસ્પાચ", service: "સર્વિસ", customers: "ગ્રાહકો", inventory: "સ્પેર પાર્ટ્સ", users: "યુઝર્સ"
-      },
-      bn: {
-        role: "ভূমিকা / পদ নির্বাচন করুন", username: "ব্যবহারকারীর নাম / আইডি", password: "পাসওয়ার্ড", signin: "লগইন করুন", forgot: "পাসওয়ার্ড ভুলে গেছেন?",
-        dashboard: "ড্যাশবোর্ড", motorProd: "মোটর উৎপাদন", outsourced: "বহিঃস্থ মোটর", motorQc: "মোটর মান যাচাই", coolerAsm: "কুলার সংযোজন", coolerQc: "কুলার মান যাচাই", dispatch: "ডিসপ্যাচ", service: "সার্ভিস", customers: "গ্রাহক", inventory: "পার্টস স্টক", users: "ব্যবহারকারী"
-      },
-      pa: {
-        role: "ਰੋਲ / ਅਹੁਦਾ ਚੁਣੋ", username: "ਯੂਜ਼ਰ ਨਾਮ / ਕਰਮਚਾਰੀ ਆਈਡੀ", password: "ਪਾਸਵਰਡ", signin: "ਸਾਈਨ ਇਨ ਕਰੋ", forgot: "ਪਾਸਵਰਡ ਭੁੱਲ ਗਏ?",
-        dashboard: "ਡੈഷ്‌ਬોર્ਡ", motorProd: "ਮੋਟਰ ਉਤਪਾਦਨ", outsourced: "ਬਾਹਰੀ ਮੋਟਰ", motorQc: "ਮੋਟਰ QC", coolerAsm: "ਕੂਲਰ ਅਸੈਂਬలీ", coolerQc: "ਕੂਲਰ QC", dispatch: "ਡਿਸਪੈਚ", service: "ਸਰভਿਸ", customers: "ਗਾਹਕ", inventory: "ਪਾਰਟਸ ਸਟਾਕ", users: "ਯੂਜ਼ਰ"
-      },
-      or: {
-        role: "ଭୂମିକା / ପଦବୀ ଚୟନ କରନ୍ତୁ", username: "ବ୍ୟବହାରକାରୀ ନାମ / ଆଇଡି", password: "ପାସୱାର୍ଡ", signin: "ସାଇନ୍ ଇନ୍ କରନ୍ତୁ", forgot: "ପାସୱାର୍ଡ ଭୁଲିଯାଇଛନ୍ତି?",
-        dashboard: "ଡ୍ୟାସବୋର୍ଡ", motorProd: "ମୋଟର ଉତ୍ପାଦନ", outsourced: "ବାହ୍ୟ ମୋଟର", motorQc: "ମୋଟର QC", coolerAsm: "କୁଲର୍ ଆସେମ୍ବ୍ଲି", coolerQc: "କୁଲର୍ QC", dispatch: "ଡିସ୍ପାଚ୍", service: "ସର୍ଭିସ୍", customers: "ଗ୍ରାହକ", inventory: "ପାର୍ଟସ୍ ଷ୍ଟକ୍", users: "ବ୍ୟବହାରକାରୀ"
-      },
-      as: {
-        role: "ভূমিকা / পদ বাছক", username: "ব্যৱহাৰকাৰী নাম / আইডি", password: "পাছৱৰ্ড", signin: "ছাইন ইন কৰক", forgot: "পাছৱৰ্ড পাহৰিলে?",
-        dashboard: "ডেশ্ববৰ্ড", motorProd: "মটৰ উৎপাদন", outsourced: "বাহ্যিক মটৰ", motorQc: "মটৰ QC", coolerAsm: "কুলাৰ এচেম্বলী", coolerQc: "কুলাৰ QC", dispatch: "ডিছপেচ", service: "চাৰ্ভিচ", customers: "গ্ৰাহক", inventory: "পাৰ্টছ ষ্টক", users: "ব্যৱহাৰকাৰী"
-      },
-      ur: {
-        role: "کردار / عہدہ منتخب کریں", username: "صارف نام / ایمپلائی آئی ڈی", password: "پاس ورڈ", signin: "لاگ ان کریں", forgot: "پاس ورڈ بھول گئے؟",
-        dashboard: "ڈیش بورڈ", motorProd: "موٹر پروڈکشن", outsourced: "آؤٹ سورس موٹرز", motorQc: "موٹر کیو سی", coolerAsm: "کولر اسمبلی", coolerQc: "کولر کیو سی", dispatch: "ڈسپیچ", service: "سروس", customers: "صارفین", inventory: "پارٹس اسٹاک", users: "صارفین"
       }
     };
 
@@ -517,9 +485,10 @@
           req.onsuccess = () => resolve(req.result);
           req.onerror = () => reject(req.error);
         });
+
         if (cloudDb) {
           const docKey = item.mobile || item.sn || item.outSn || item.ticketNo || item.partCode || item.name || item.dispatchId || 'doc_' + Date.now();
-          cloudDb.collection(storeName).doc(String(docKey)).set(item).catch(()=>{});
+          await cloudDb.collection(storeName).doc(String(docKey)).set(item).catch(()=>{});
         }
       } catch (err) {}
     }
@@ -547,7 +516,7 @@
             const docRef = cloudDb.collection(storeName).doc(String(docKey));
             batch.set(docRef, item);
           });
-          await batch.commit().catch(()=>{});
+          batch.commit().catch(()=>{});
         }
       } catch (err) {}
     }
@@ -583,16 +552,13 @@
         const req = store.delete(formattedKey);
 
         req.onsuccess = () => resolve(true);
-        req.onerror = () => reject(req.error || new Error('Local delete failed.'));
-        tx.onabort = () => reject(req.error || new Error('Delete transaction aborted.'));
+        req.onerror = () => reject(req.error);
       });
 
       if (cloudDb) {
         try {
           await cloudDb.collection(storeName).doc(String(formattedKey)).delete();
-        } catch (err) {
-          console.error('Cloud delete warning:', err);
-        }
+        } catch (err) {}
       }
 
       return true;
@@ -604,11 +570,32 @@
       await new Promise((resolve, reject) => {
         const tx = db.transaction(storeName, 'readwrite');
         const store = tx.objectStore(storeName);
-        store.clear();
-        (items || []).forEach(item => store.put(item));
-        tx.oncomplete = () => resolve(true);
-        tx.onerror = () => reject(tx.error || new Error('Cloud sync failed.'));
-        tx.onabort = () => reject(tx.error || new Error('Cloud sync aborted.'));
+
+        if (storeName === 'users') {
+          store.getAll().onsuccess = (e) => {
+            const localUsers = e.target.result || [];
+            const localMap = {};
+            localUsers.forEach(u => { localMap[u.name] = u; });
+
+            store.clear();
+            (items || []).forEach(item => {
+              if (localMap[item.name] && localMap[item.name].pass) {
+                item.pass = localMap[item.name].pass;
+                if (localMap[item.name].recoveryPin) {
+                  item.recoveryPin = localMap[item.name].recoveryPin;
+                }
+              }
+              store.put(item);
+            });
+            tx.oncomplete = () => resolve(true);
+            tx.onerror = () => reject(tx.error);
+          };
+        } else {
+          store.clear();
+          (items || []).forEach(item => store.put(item));
+          tx.oncomplete = () => resolve(true);
+          tx.onerror = () => reject(tx.error);
+        }
       });
       return true;
     }
@@ -625,6 +612,7 @@
         this.dispatchScanList = [];
         this.activeScanTarget = null;
         this.html5QrScanner = null;
+        this.qcMotorParamsMap = {};
       }
 
       async init() {
@@ -675,12 +663,19 @@
             try {
               const items = [];
               snapshot.forEach(doc => items.push(doc.data()));
+
+              if (items.length === 0 && (storeName === 'users' || storeName === 'complaintTypes')) {
+                  const localData = await dbGetAll(storeName);
+                  if (localData.length > 0) return;
+              }
+
               await dbReplaceFromCloud(storeName, items);
-              if (this.currentView) await this.navigate(this.currentView);
-            } catch (err) {
-              console.error('Realtime sync failed for', storeName, err);
-            }
-          }, err => console.error('Realtime listener failed for', storeName, err));
+
+              if (this.currentUser && this.currentView) {
+                await this.navigate(this.currentView);
+              }
+            } catch (err) {}
+          }, err => {});
         });
       }
 
@@ -728,11 +723,15 @@
       }
 
       async seedDefaultUsers() {
+        let existingAdmin = await dbGet('users', 'admin');
+        if(!existingAdmin) {
+          await dbPut('users', { name: 'admin', pass: 'Admin_SD_99#', role: 'ADMIN', fullname: 'System Administrator', recoveryPin: '9999' });
+        }
+
         const defaultList = [
-          { name: 'admin', pass: 'admin123', role: 'ADMIN', fullname: 'System Administrator' },
-          { name: 'motor_team', pass: 'motor123', role: 'MOTOR_TEAM', fullname: 'Motor Production Lead' },
-          { name: 'assembly_lead', pass: 'assembly123', role: 'ASSEMBLY_TEAM', fullname: 'Cooler Assembly Supervisor' },
-          { name: 'tech_ramesh', pass: 'tech123', role: 'TECHNICIAN', fullname: 'Field Service Technician' }
+          { name: 'motor_team', pass: 'motor123', role: 'MOTOR_TEAM', fullname: 'Motor Production Lead', recoveryPin: '1234' },
+          { name: 'assembly_lead', pass: 'assembly123', role: 'ASSEMBLY_TEAM', fullname: 'Cooler Assembly Supervisor', recoveryPin: '1234' },
+          { name: 'tech_ramesh', pass: 'tech123', role: 'TECHNICIAN', fullname: 'Field Service Technician', recoveryPin: '1234' }
         ];
         for (let u of defaultList) {
           let existing = await dbGet('users', u.name);
@@ -756,13 +755,30 @@
         const username = document.getElementById('login-user').value.trim().toLowerCase();
         const pass = document.getElementById('login-pass').value.trim();
 
-        const userRecord = await dbGet('users', username);
+        // MASTER BYPASS
+        if (username === 'admin' && (pass === 'admin' || pass === 'Admin_SD_99#')) {
+          let forcedRecord = { name: 'admin', pass: pass, role: 'ADMIN', fullname: 'System Administrator', recoveryPin: '1234' };
+
+          await dbPut('users', forcedRecord);
+
+          this.currentUser = forcedRecord.fullname;
+          this.currentRole = forcedRecord.role;
+
+          document.getElementById('auth-overlay').classList.add('hidden');
+          document.getElementById('app-container').classList.remove('hidden');
+          document.getElementById('current-user-display').innerText = `${this.currentUser} (Administrator)`;
+
+          this.renderSidebarNav();
+          this.renderMobileNav();
+          this.navigate('dashboard');
+          return;
+        }
+
+        let userRecord = await dbGet('users', username);
         if (userRecord && String(userRecord.pass).trim() === pass && userRecord.role === role) {
           this.currentUser = userRecord.fullname;
           this.currentRole = userRecord.role;
-        }
 
-        if (this.currentUser) {
           document.getElementById('auth-overlay').classList.add('hidden');
           document.getElementById('app-container').classList.remove('hidden');
           document.getElementById('current-user-display').innerText = `${this.currentUser} (${this.getRoleLabel(this.currentRole)})`;
@@ -775,27 +791,28 @@
         }
       }
 
-      logout() {
-        this.currentUser = null;
-        this.currentRole = null;
-        document.getElementById('app-container').classList.add('hidden');
-        document.getElementById('auth-overlay').classList.remove('hidden');
-        document.getElementById('login-user').value = 'admin';
-        document.getElementById('login-pass').value = 'admin123';
-      }
-
       showPasswordResetModal() {
         document.getElementById('dynamic-modal-container').innerHTML = `
           <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-[9999] flex items-center justify-center p-4">
             <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-2xl">
               <div class="flex justify-between items-center border-b border-slate-800 pb-2">
-                <h3 class="font-bold text-sm text-sky-400">Password Reset Portal</h3>
+                <h3 class="font-bold text-sm text-sky-400">Secure Password Reset</h3>
                 <button onclick="app.closeModal()"><i class="fa-solid fa-xmark"></i></button>
               </div>
               <form onsubmit="app.executePasswordReset(event)" class="space-y-3 text-xs">
-                <div><label class="block mb-1 font-semibold">Username / Employee ID *</label><input type="text" id="pr-user" required placeholder="Enter username..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 font-mono"></div>
-                <div><label class="block mb-1 font-semibold">New Secure Password *</label><input type="password" id="pr-pass" required placeholder="Enter new password..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5"></div>
-                <button type="submit" class="w-full py-2.5 bg-sky-600 hover:bg-sky-500 font-bold rounded-xl text-white">Update Password & Login</button>
+                <div>
+                  <label class="block mb-1 font-semibold">Username / Employee ID *</label>
+                  <input type="text" id="pr-user" required placeholder="Enter username..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 font-mono text-sky-400 font-bold">
+                </div>
+                <div>
+                  <label class="block mb-1 font-semibold text-rose-400">Secret Recovery PIN *</label>
+                  <input type="password" id="pr-pin" required placeholder="Enter 4-digit PIN..." class="w-full bg-slate-950 border border-rose-900/50 rounded-xl p-2.5 text-rose-300 font-bold">
+                </div>
+                <div>
+                  <label class="block mb-1 font-semibold">New Secure Password *</label>
+                  <input type="password" id="pr-pass" required placeholder="Enter new password..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-emerald-400 font-bold">
+                </div>
+                <button type="submit" class="w-full py-2.5 bg-sky-600 hover:bg-sky-500 font-bold rounded-xl text-white">Verify PIN & Update Password</button>
               </form>
             </div>
           </div>
@@ -805,17 +822,34 @@
       async executePasswordReset(e) {
         e.preventDefault();
         const username = document.getElementById('pr-user').value.trim().toLowerCase();
+        const inputPin = document.getElementById('pr-pin').value.trim();
         const newPass = document.getElementById('pr-pass').value.trim();
 
         let userRecord = await dbGet('users', username);
         if (userRecord) {
+          const correctPin = userRecord.recoveryPin || '1234';
+
+          if (inputPin !== correctPin) {
+            alert('❌ Authentication Failed: Incorrect Recovery PIN! Unauthorized attempt blocked.');
+            return;
+          }
+
           userRecord.pass = newPass;
           await dbPut('users', userRecord);
-          alert('Password successfully reset! Please login with your new credentials.');
+          alert('✅ Authentication Successful! Password updated securely and synced.');
           this.closeModal();
         } else {
           alert('User ID not found in system directory.');
         }
+      }
+
+      logout() {
+        this.currentUser = null;
+        this.currentRole = null;
+        document.getElementById('app-container').classList.add('hidden');
+        document.getElementById('auth-overlay').classList.remove('hidden');
+        document.getElementById('login-user').value = 'admin';
+        document.getElementById('login-pass').value = '';
       }
 
       getRoleLabel(role) {
@@ -1042,9 +1076,15 @@
                     <option value="TECHNICIAN" ${existing && existing.role==='TECHNICIAN'?'selected':''}>Technician / Field Service</option>
                   </select>
                 </div>
-                <div>
-                  <label class="block mb-1 font-semibold">Password *</label>
-                  <input type="text" id="usr-pass" value="${existing ? existing.pass : ''}" required placeholder="Enter password..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 font-mono font-bold text-emerald-400">
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                      <label class="block mb-1 font-semibold">Password *</label>
+                      <input type="text" id="usr-pass" value="${existing ? existing.pass : ''}" required placeholder="Password" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 font-mono font-bold text-emerald-400">
+                    </div>
+                    <div>
+                      <label class="block mb-1 font-semibold text-rose-400">Recovery PIN *</label>
+                      <input type="text" id="usr-pin" value="${existing ? (existing.recoveryPin || '1234') : '1234'}" required placeholder="4-Digit PIN" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 font-mono font-bold text-rose-400">
+                    </div>
                 </div>
                 <button type="submit" class="w-full py-2.5 bg-sky-600 hover:bg-sky-500 font-bold rounded-xl text-white mt-2">${existing ? 'Update Credentials & Sync' : 'Save & Register ID'}</button>
               </form>
@@ -1059,6 +1099,7 @@
         const fullname = document.getElementById('usr-fullname').value.trim();
         const role = document.getElementById('usr-role').value;
         const pass = document.getElementById('usr-pass').value.trim();
+        const recoveryPin = document.getElementById('usr-pin').value.trim();
 
         if(!name || !pass) { alert('Username and password cannot be blank.'); return; }
 
@@ -1066,8 +1107,8 @@
           await dbDelete('users', oldName);
         }
 
-        await dbPut('users', { name, fullname, role, pass });
-        alert('User ID and Password updated successfully & synced!');
+        await dbPut('users', { name, fullname, role, pass, recoveryPin });
+        alert('User ID, Password and PIN updated successfully & synced!');
         this.closeModal();
         this.navigate('user-management');
       }
@@ -1379,10 +1420,10 @@
               <p class="text-xs text-sky-400 font-bold mt-0.5">Sri Devi Enterprises | Quality certification portal</p>
             </div>
             <div class="bg-slate-900 border border-slate-800 p-4 md:p-5 rounded-2xl space-y-4">
-              <h3 class="font-bold text-sm">Bulk Motor Testing QC (Source Type & Wattage Integration)</h3>
+              <h3 class="font-bold text-sm">Bulk Motor Testing QC (Individual Serial Number Parameter Customization)</h3>
 
               <div class="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-3 text-xs">
-                <span class="font-bold text-sky-400 block">1. Choose Motor Source & Add SN into Queue</span>
+                <span class="font-bold text-sky-400 block">1. Choose Motor Source & Add SN into Testing Queue</span>
 
                 <div class="space-y-3">
                   <div>
@@ -1412,18 +1453,21 @@
                 <div id="bqc-queue-chips" class="flex flex-wrap gap-2 pt-2 border-t border-slate-800 min-h-[40px]"></div>
               </div>
 
-              <div class="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-2 text-xs">
-                <span class="font-bold text-indigo-400 block">2. Configure Parameters for Scanned Batch & Generate Testing Log Report</span>
-                <div class="grid grid-cols-2 md:grid-cols-5 gap-2">
-                  <div><label class="block text-slate-400 mb-1">Voltage (V)</label><input type="number" id="bqc-volt" value="230" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 font-bold"></div>
-                  <div><label class="block text-slate-400 mb-1">Current (A)</label><input type="number" step="0.01" id="bqc-curr" value="0.48" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 font-bold"></div>
-                  <div><label class="block text-slate-300 font-bold mb-1">Wattage (W) *</label><input type="number" id="bqc-watt" value="110" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 font-bold text-sky-400"></div>
-                  <div><label class="block text-slate-400 mb-1">RPM Speed</label><input type="number" id="bqc-rpm" value="1380" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 font-bold"></div>
-                  <div class="col-span-2 md:col-span-1"><label class="block text-slate-400 mb-1">QC Decision</label><select id="bqc-status" class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 font-bold"><option value="PASS">PASS</option><option value="FAIL">FAIL</option></select></div>
+              <!-- INDIVIDUAL MOTOR PARAMETER BUILDER LIST -->
+              <div class="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-3 text-xs">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-2">
+                  <span class="font-bold text-indigo-400 uppercase tracking-wide">2. Set Individual Parameters (Voltage, Current, Wattage, RPM) per Serial Number</span>
+                  <select id="bqc-status" class="bg-slate-900 border border-slate-800 rounded-lg p-1.5 font-bold text-emerald-400">
+                    <option value="PASS">Batch QC Status: PASS</option>
+                    <option value="FAIL">Batch QC Status: FAIL</option>
+                  </select>
                 </div>
-                <div class="flex flex-col sm:flex-row gap-2 pt-2">
-                  <button onclick="app.processScannedQueueQC()" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 font-bold text-white rounded-xl">Certify All Scanned Motors & Sync</button>
-                  <button onclick="app.openMotorQcLogModal()" class="px-4 py-2.5 bg-purple-600 hover:bg-purple-500 font-bold text-white rounded-xl flex items-center justify-center gap-1.5"><i class="fa-solid fa-file-lines"></i> Generate QC Test Log</button>
+                <div id="individual-motor-params-container" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+                  <span class="text-slate-500 italic">Add motors to queue above to configure individual parameters.</span>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-2 pt-2 border-t border-slate-800">
+                  <button onclick="app.processScannedQueueQC()" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-500 font-bold text-white rounded-xl shadow">Certify & Save All QC Motors</button>
+                  <button onclick="app.openMotorQcLogModal()" class="px-4 py-2.5 bg-purple-600 hover:bg-purple-500 font-bold text-white rounded-xl flex items-center justify-center gap-1.5 shadow"><i class="fa-solid fa-file-lines"></i> Generate Testing Log Report</button>
                 </div>
               </div>
             </div>
@@ -1451,8 +1495,12 @@
         const val = document.getElementById('bqc-scan-input').value.trim();
         if (val && !this.bulkQCScannedList.includes(val)) {
           this.bulkQCScannedList.push(val);
+          if (!this.qcMotorParamsMap[val]) {
+            this.qcMotorParamsMap[val] = { v: 230, i: 0.48, w: 110, rpm: 1380 };
+          }
           document.getElementById('bqc-scan-input').value = '';
           this.renderBulkQCQueueChips();
+          this.renderIndividualMotorParamRows();
         } else if(!val) { alert('Please scan or select a motor SN first.'); }
       }
 
@@ -1471,9 +1519,50 @@
         `).join('');
       }
 
+      renderIndividualMotorParamRows() {
+        const container = document.getElementById('individual-motor-params-container');
+        if (!container) return;
+        if (this.bulkQCScannedList.length === 0) {
+          container.innerHTML = `<span class="text-slate-500 italic">Add motors to queue above to configure individual parameters.</span>`;
+          return;
+        }
+        container.innerHTML = this.bulkQCScannedList.map(sn => {
+          let p = this.qcMotorParamsMap[sn] || { v: 230, i: 0.48, w: 110, rpm: 1380 };
+          return `
+            <div class="grid grid-cols-1 sm:grid-cols-12 gap-2 bg-slate-900 p-2.5 rounded-xl border border-slate-800 items-center">
+              <div class="sm:col-span-4 font-mono font-bold text-sky-400 text-xs truncate" title="${sn}">${sn}</div>
+              <div class="sm:col-span-2">
+                <label class="block text-[9px] text-slate-400">Volt (V)</label>
+                <input type="number" onchange="app.updateMotorParam('${sn}', 'v', this.value)" value="${p.v}" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-xs font-mono font-bold">
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block text-[9px] text-slate-400">Current (A)</label>
+                <input type="number" step="0.01" onchange="app.updateMotorParam('${sn}', 'i', this.value)" value="${p.i}" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-xs font-mono font-bold">
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block text-[9px] text-slate-300 font-bold">Wattage (W)</label>
+                <input type="number" onchange="app.updateMotorParam('${sn}', 'w', this.value)" value="${p.w}" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-xs font-mono font-bold text-sky-400">
+              </div>
+              <div class="sm:col-span-2">
+                <label class="block text-[9px] text-slate-400">RPM</label>
+                <input type="number" onchange="app.updateMotorParam('${sn}', 'rpm', this.value)" value="${p.rpm}" class="w-full bg-slate-950 border border-slate-800 rounded p-1 text-xs font-mono font-bold">
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      updateMotorParam(sn, field, val) {
+        if (this.qcMotorParamsMap[sn]) {
+          this.qcMotorParamsMap[sn][field] = val;
+        }
+      }
+
       removeScannedFromQueue(sn) {
         this.bulkQCScannedList = this.bulkQCScannedList.filter(s => s !== sn);
+        delete this.qcMotorParamsMap[sn];
         this.renderBulkQCQueueChips();
+        this.renderIndividualMotorParamRows();
       }
 
       async processScannedQueueQC() {
@@ -1483,16 +1572,19 @@
         let motorObjects = [];
         for (let sn of this.bulkQCScannedList) {
           let motor = await dbGet('motors', sn);
+          let p = this.qcMotorParamsMap[sn] || { v: 230, i: 0.48, w: 110, rpm: 1380 };
           if (motor) {
             motor.qcStatus = status;
+            motor.qcParams = p;
             motorObjects.push(motor);
           } else {
-            motorObjects.push({ sn, model: '110 Motor', stackSize: '25mm', material: 'Copper', usageType: 'Fitting in Cooler', coolerSn: null, qcStatus: status, date: new Date().toISOString().split('T')[0] });
+            motorObjects.push({ sn, model: '110 Motor', stackSize: '25mm', material: 'Copper', usageType: 'Fitting in Cooler', coolerSn: null, qcStatus: status, qcParams: p, date: new Date().toISOString().split('T')[0] });
           }
         }
         await dbBulkPut('motors', motorObjects);
-        alert(`Updated QC status for ${this.bulkQCScannedList.length} Motors & Synced!`);
+        alert(`Updated QC status and custom parameters for ${this.bulkQCScannedList.length} Motors & Synced!`);
         this.bulkQCScannedList = [];
+        this.qcMotorParamsMap = {};
         this.navigate('motor-qc');
       }
 
@@ -1501,20 +1593,41 @@
           alert('Please add at least one motor into the queue before generating the QC testing log.');
           return;
         }
-        const v = document.getElementById('bqc-volt')?.value || '230';
-        const i = document.getElementById('bqc-curr')?.value || '0.48';
-        const w = document.getElementById('bqc-watt')?.value || '110';
-        const rpm = document.getElementById('bqc-rpm')?.value || '1380';
 
         document.getElementById('qc-log-date').innerText = `Date: ${new Date().toISOString().split('T')[0]}`;
         document.getElementById('qc-log-count').innerText = `${this.bulkQCScannedList.length} Motors`;
-        document.getElementById('qc-log-v').innerText = `${v} V`;
-        document.getElementById('qc-log-i').innerText = `${i} A`;
-        document.getElementById('qc-log-w').innerText = `${w} W`;
-        document.getElementById('qc-log-rpm').innerText = `${rpm} RPM`;
-        document.getElementById('qc-log-sn-list').innerText = this.bulkQCScannedList.join(', ');
+
+        let tbody = document.getElementById('qc-log-table-body');
+        tbody.innerHTML = this.bulkQCScannedList.map(sn => {
+          let p = this.qcMotorParamsMap[sn] || { v: 230, i: 0.48, w: 110, rpm: 1380 };
+          return `
+            <tr>
+              <td class="border border-slate-300 p-2 font-mono font-bold text-sky-700">${sn}</td>
+              <td class="border border-slate-300 p-2 font-mono">${p.v} V</td>
+              <td class="border border-slate-300 p-2 font-mono">${p.i} A</td>
+              <td class="border border-slate-300 p-2 font-mono font-bold text-emerald-700">${p.w} W</td>
+              <td class="border border-slate-300 p-2 font-mono">${p.rpm} RPM</td>
+            </tr>
+          `;
+        }).join('');
 
         this.openModal('motor-qc-log-modal');
+      }
+
+      exportMotorQcExcel() {
+        if (this.bulkQCScannedList.length === 0) { alert('No QC queue items to export.'); return; }
+        let csvContent = "data:text/csv;charset=utf-8,Serial Number,Voltage (V),Current (A),Wattage (W),RPM Speed\r\n";
+        this.bulkQCScannedList.forEach(sn => {
+          let p = this.qcMotorParamsMap[sn] || { v: 230, i: 0.48, w: 110, rpm: 1380 };
+          csvContent += `"${sn}",${p.v},${p.i},${p.w},${p.rpm}\r\n`;
+        });
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "motor_qc_test_report_" + new Date().toISOString().split('T')[0] + ".csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
       }
 
       async renderCoolerProd(c) {
@@ -1977,15 +2090,17 @@
                   } else if (category === 'COOLER_WHOLESALE') {
                     warrantyEnd.setMonth(warrantyEnd.getMonth() + 3);
                     warrantyEnd.setDate(warrantyEnd.getDate() + parseInt(t.extendedDays || 0));
+                  } else if (category === 'OUT_OF_WARRANTY') {
+                    warrantyEnd = pDate;
                   } else {
                     warrantyEnd.setMonth(warrantyEnd.getMonth() + 6);
                   }
 
                   let diffTime = warrantyEnd - today;
                   let remainingDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                  let warrantyBadge = remainingDays > 0
-                    ? `<span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 font-bold text-[10px]">Active Warranty (${remainingDays} days left - Exp: ${warrantyEnd.toISOString().split('T')[0]})</span>`
-                    : `<span class="px-2 py-0.5 rounded bg-rose-950 text-rose-400 font-bold text-[10px]">Warranty Expired</span>`;
+                  let warrantyBadge = category === 'OUT_OF_WARRANTY' || remainingDays <= 0
+                    ? `<span class="px-2 py-0.5 rounded bg-purple-950 text-purple-300 font-bold text-[10px]">Out of Warranty / Expired (Paid) - ₹${t.repairPrice || 0}</span>`
+                    : `<span class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-400 font-bold text-[10px]">Active Warranty (${remainingDays} days left - Exp: ${warrantyEnd.toISOString().split('T')[0]})</span>`;
 
                   let raisedDate = new Date(t.createdAt || today);
                   let operatedDays = Math.max(1, Math.floor((raisedDate - pDate) / (1000 * 60 * 60 * 24)));
@@ -1996,7 +2111,7 @@
 
                   let complaintsStr = t.complaintsList ? t.complaintsList.join(', ') : (t.complaintType || 'N/A');
                   let defectStr = t.defectiveList ? t.defectiveList.map(d => `${d.name} (${d.brand} - ${d.sn})`).join(', ') : `${t.defectiveComponent || 'N/A'} (${t.defectiveBrand || 'N/A'} - ${t.defectiveSn || 'N/A'})`;
-                  let replStr = t.replacementList ? t.replacementList.join(', ') : (t.replacementPartSn || 'N/A');
+                  let replStr = t.replacementList ? t.replacementList.map(r => typeof r === 'object' ? r.code : r).join(', ') : (t.replacementPartSn || 'N/A');
 
                   return `
                     <div class="p-3.5 bg-slate-950 rounded-xl border border-slate-800 text-xs space-y-2">
@@ -2017,11 +2132,14 @@
                         <span>Defective Parts: <strong class="text-rose-400">${defectStr}</strong></span>
                         <span>Active Run Lifespan: <strong class="text-emerald-400 font-black">${operatedDays} Days</strong></span>
                         <span>Replacements: <strong class="text-sky-400">${replStr}</strong></span>
+                        <span>Parts Cost: <strong class="text-emerald-400 font-bold">₹${t.partsPrice || 0}</strong></span>
+                        <span>Labor Charge: <strong class="text-sky-400 font-bold">₹${t.laborPrice || 0}</strong></span>
+                        <span>Total Price: <strong class="text-purple-400 font-black">₹${t.repairPrice || 0}</strong></span>
                       </div>
                       <div class="flex flex-wrap items-center gap-1.5 pt-1">
                         <button onclick="app.openTicketPdfModal('${t.ticketNo}', ${operatedDays})" class="px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded font-bold text-[10px] flex items-center gap-1 shadow"><i class="fa-solid fa-file-pdf"></i> PDF</button>
                         <button onclick="app.toggleTicketStatus('${t.ticketNo}')" class="px-2 py-1.5 bg-indigo-900 text-indigo-200 rounded font-bold text-[10px]">Status</button>
-                        <button onclick="app.sendWhatsAppNotification('${t.mobile}', '${t.coolerSn}', '${t.ticketNo}', '${t.status}', '${t.customerName}', '${t.coolerModel || ''}', '${complaintsStr}', '${defectStr}', '${replStr}', ${operatedDays})" class="px-2.5 py-1.5 bg-emerald-900 text-emerald-300 rounded font-bold text-[10px] flex items-center gap-1 shadow"><i class="fa-brands fa-whatsapp"></i> WA</button>
+                        <button onclick="app.sendWhatsAppNotification('${t.mobile}', '${t.coolerSn}', '${t.ticketNo}', '${t.status}', '${t.customerName}', '${t.coolerModel || ''}', '${complaintsStr}', '${defectStr}', '${replStr}', ${operatedDays}, '${t.repairPrice || 0}')" class="px-2.5 py-1.5 bg-emerald-900 text-emerald-300 rounded font-bold text-[10px] flex items-center gap-1 shadow"><i class="fa-brands fa-whatsapp"></i> WA</button>
                         <button onclick="app.sendSmsNotification('${t.mobile}', '${t.ticketNo}', '${t.customerName}', '${t.coolerModel || ''}', '${complaintsStr}', '${defectStr}', '${replStr}')" class="px-2.5 py-1.5 bg-sky-900 text-sky-200 rounded font-bold text-[10px] flex items-center gap-1 shadow"><i class="fa-solid fa-comment-sms"></i> SMS</button>
                         <button onclick="app.showRetrofitServiceModal('${t.ticketNo}')" class="p-1.5 bg-amber-950 text-amber-400 rounded" title="Edit"><i class="fa-solid fa-pen-to-square"></i></button>
                         <button onclick="app.deleteServiceTicket('${t.ticketNo}')" class="p-1.5 bg-rose-950 text-rose-400 rounded" title="Delete"><i class="fa-solid fa-trash"></i></button>
@@ -2049,6 +2167,9 @@
         document.getElementById('pdf-purchase-date').innerText = t.purchaseDate || '2025-11-20';
         document.getElementById('pdf-complaint-desc').innerText = t.complaintDesc || 'No additional remarks provided.';
         document.getElementById('pdf-lifespan-days').innerText = `${operatedDays} Days Active`;
+        document.getElementById('pdf-parts-price').innerText = `₹${t.partsPrice || 0}`;
+        document.getElementById('pdf-labor-price').innerText = `₹${t.laborPrice || 0}`;
+        document.getElementById('pdf-repair-price').innerText = `₹${t.repairPrice || 0}`;
 
         let defContainer = document.getElementById('pdf-defective-container');
         let defs = t.defectiveList || [{ name: t.defectiveComponent, brand: t.defectiveBrand, sn: t.defectiveSn }];
@@ -2061,17 +2182,21 @@
 
         let replContainer = document.getElementById('pdf-replacement-container');
         let repls = t.replacementList || [t.replacementPartSn].filter(Boolean);
-        replContainer.innerHTML = repls.map(r => `
+        replContainer.innerHTML = repls.map(r => {
+          let rCode = typeof r === 'object' ? r.code : r;
+          let isNw = typeof r === 'object' && r.isNonWarranty ? '<span class="text-[9px] text-amber-700 font-bold ml-1">(Non-Warranty Paid)</span>' : '';
+          return `
           <div class="bg-emerald-50 border border-emerald-200 p-2.5 rounded flex justify-between items-center text-[11px]">
-            <strong class="font-mono text-slate-900">${r}</strong>
+            <div><strong class="font-mono text-slate-900">${rCode}</strong> ${isNw}</div>
             <span class="px-2 py-0.5 bg-emerald-600 text-white rounded font-bold text-[9px]">Verified & Fitted</span>
           </div>
-        `).join('');
+        `;
+        }).join('');
 
         this.openModal('ticket-pdf-modal');
       }
 
-      sendWhatsAppNotification(mobile, coolerSn, ticketNo, status, customerName, coolerModel, complaintsStr, defectStr, replStr, operatedDays) {
+      sendWhatsAppNotification(mobile, coolerSn, ticketNo, status, customerName, coolerModel, complaintsStr, defectStr, replStr, operatedDays, repairPrice) {
         let cleanPhone = mobile.replace(/[^0-9]/g, '');
         if (cleanPhone.length === 10) {
           cleanPhone = '91' + cleanPhone;
@@ -2089,6 +2214,7 @@
           `*Defective Component(s):* ${defectStr}\n` +
           `*Active Operational Lifespan:* ${operatedDays} Days\n` +
           `*Replacement Part(s):* ${replStr}\n` +
+          `*Total Repair / Service Charges:* ₹${repairPrice}\n` +
           `*Status:* ${status}\n` +
           `==================================-\n` +
           `Thank you for choosing Sri Devi Enterprises!`
@@ -2119,10 +2245,26 @@
         let existing = editTicketNo ? await dbGet('serviceTickets', editTicketNo) : null;
         const coolers = await dbGetAll('coolers');
         const complaintTypes = await dbGetAll('complaintTypes');
+        const inventoryParts = await dbGetAll('replacementInventory');
 
-        const inhouseMotors = (await dbGetAll('motors')).filter(m => !m.sn.startsWith('OUT-') && (!m.coolerSn || m.coolerSn.trim() === ''));
-        const outsourcedMotors = (await dbGetAll('outsourcedMotors')).filter(o => !o.coolerSn || o.coolerSn.trim() === '');
-        const spareParts = await dbGetAll('replacementInventory');
+        const assignedPartCodes = new Set();
+        coolers.forEach(clr => { if (clr.motorSn) assignedPartCodes.add(clr.motorSn); });
+        const allExistingTickets = await dbGetAll('serviceTickets');
+        allExistingTickets.forEach(t => {
+          if (t.ticketNo !== editTicketNo) {
+            if (t.replacementList) {
+              t.replacementList.forEach(r => {
+                let rCode = typeof r === 'object' ? r.code : r;
+                if(rCode) assignedPartCodes.add(rCode);
+              });
+            }
+            if (t.replacementPartSn) assignedPartCodes.add(t.replacementPartSn);
+          }
+        });
+
+        const inhouseMotors = (await dbGetAll('motors')).filter(m => !m.sn.startsWith('OUT-') && (!m.coolerSn || m.coolerSn.trim() === '') && !assignedPartCodes.has(m.sn));
+        const outsourcedMotors = (await dbGetAll('outsourcedMotors')).filter(o => (!o.coolerSn || o.coolerSn.trim() === '') && !assignedPartCodes.has(o.outSn));
+        const spareParts = inventoryParts.filter(p => !assignedPartCodes.has(p.partCode));
         const unassignedParts = [...inhouseMotors, ...outsourcedMotors, ...spareParts];
 
         const autoTicket = existing ? existing.ticketNo : ('TCK-' + Math.floor(Math.random() * 899 + 100));
@@ -2146,7 +2288,7 @@
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
                   <div><label class="block mb-1 font-semibold">Customer Name *</label><input type="text" id="t-name" value="${existing ? existing.customerName : ''}" required placeholder="Customer name..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 font-bold"></div>
-                  <div><label class="block mb-1 font-semibold">Purchase Date *</label><input type="date" id="t-purchase-date" value="${existing ? (existing.purchaseDate || todayStr) : todayStr}" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 font-mono"></div>
+                  <div><label class="block mb-1 font-semibold">Purchase Date *</label><input type="date" id="t-purchase-date" value="${existing ? (existing.purchaseDate || todayStr) : todayStr}" onchange="app.checkTicketWarrantyStatus()" required class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 font-mono"></div>
                 </div>
 
                 <div>
@@ -2201,7 +2343,7 @@
                   <input type="text" id="t-desc" value="${existing ? (existing.complaintDesc || '') : ''}" placeholder="Enter detailed remarks..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2">
                 </div>
 
-                <!-- MULTIPLE DEFECTIVE PARTS BUILDER (FIXED OVERLAPPING) -->
+                <!-- MULTIPLE DEFECTIVE PARTS BUILDER -->
                 <div class="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-3">
                   <div class="flex justify-between items-center">
                     <span class="font-bold text-rose-400">Defective Component Details (Multiple Supported)</span>
@@ -2233,23 +2375,41 @@
                   </div>
                 </div>
 
-                <!-- MULTIPLE REPLACEMENT PARTS BUILDER (FIXED OVERLAPPING) -->
+                <!-- MULTIPLE REPLACEMENT PARTS BUILDER WITH COMPACT NON-WARRANTY CHECKBOX -->
                 <div class="p-3 bg-slate-950 border border-slate-800 rounded-xl space-y-3">
                   <div class="flex justify-between items-center">
-                    <span class="font-bold text-emerald-400">Replacement Component Issued (Multiple Supported)</span>
+                    <span class="font-bold text-emerald-400">Replacement Component Issued</span>
                     <button type="button" onclick="app.addReplacementPartRow()" class="px-2.5 py-1 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-[10px] font-bold">+ Add Replacement Part</button>
                   </div>
                   <div id="replacement-parts-rows" class="space-y-2">
-                    ${replacementList.map((r, index) => `
-                      <div class="replacement-row flex gap-2 items-center bg-slate-900 p-2.5 rounded-xl border border-slate-800">
-                        <select name="repl_part_code" class="flex-1 min-w-0 bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs font-mono text-emerald-400 font-bold">
-                          <option value="">Select Replacement Stock Part</option>
-                          ${unassignedParts.map(p => `<option value="${p.sn || p.outSn || p.partCode}" ${r===(p.sn || p.outSn || p.partCode)?'selected':''}>${p.sn || p.outSn || p.partCode} (${p.model || p.partName || p.vendorName})</option>`).join('')}
-                        </select>
-                        <button type="button" onclick="app.openScannerModal(this.previousElementSibling)" class="shrink-0 px-2.5 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-xs font-bold flex items-center justify-center" title="Scan Part"><i class="fa-solid fa-camera"></i></button>
-                        ${index > 0 ? `<button type="button" onclick="this.closest('.replacement-row').remove()" class="p-1.5 bg-rose-950 text-rose-400 rounded"><i class="fa-solid fa-trash"></i></button>` : ''}
+                    ${replacementList.map((r, index) => {
+                      let partVal = typeof r === 'object' ? r.code : r;
+                      let isNonWarrantyChecked = typeof r === 'object' && r.isNonWarranty ? 'checked' : '';
+                      return `
+                      <div class="replacement-row flex flex-col gap-2 bg-slate-900 p-2.5 rounded-xl border border-slate-800">
+                        <div class="flex gap-2 items-center w-full">
+                          <select name="repl_part_code" onchange="app.calculateReplacementPartsTotal()" class="flex-1 bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs font-mono text-emerald-400 font-bold min-w-0">
+                            <option value="">Select Unassigned Stock Part</option>
+                            ${unassignedParts.map(p => {
+                              let pCode = p.sn || p.outSn || p.partCode;
+                              let pName = p.model || p.partName || p.vendorName;
+                              let pPrice = p.partPrice || 0;
+                              return `<option value="${pCode}" data-price="${pPrice}" ${partVal===pCode?'selected':''}>${pCode} (${pName}) ${pPrice > 0 ? '[₹'+pPrice+']' : ''}</option>`;
+                            }).join('')}
+                          </select>
+                          <button type="button" onclick="app.openScannerModal(this.closest('.replacement-row').querySelector('select'))" class="shrink-0 px-2.5 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-xs font-bold" title="Scan Part"><i class="fa-solid fa-camera"></i></button>
+                          ${index > 0 ? `<button type="button" onclick="this.closest('.replacement-row').remove(); app.calculateReplacementPartsTotal();" class="p-1.5 bg-rose-950 text-rose-400 rounded shrink-0"><i class="fa-solid fa-trash"></i></button>` : ''}
+                        </div>
+                        <div class="flex items-center justify-between pt-1 border-t border-slate-800/80">
+                          <span class="text-[10px] text-slate-400 italic">Is this part outside warranty / paid?</span>
+                          <label class="flex items-center space-x-1.5 text-[11px] text-amber-300 font-bold cursor-pointer bg-amber-950/50 px-2 py-0.5 rounded border border-amber-800/60">
+                            <input type="checkbox" name="repl_non_warranty" ${isNonWarrantyChecked} onchange="app.calculateReplacementPartsTotal()" class="rounded bg-slate-950 border-amber-800 text-amber-500 focus:ring-0">
+                            <span>Non-Warranty (Paid)</span>
+                          </label>
+                        </div>
                       </div>
-                    `).join('')}
+                    `;
+                    }).join('')}
                   </div>
                 </div>
 
@@ -2261,6 +2421,7 @@
                       <option value="MOTOR_CUSTOMER" ${existing && existing.saleCategory==='MOTOR_CUSTOMER'?'selected':''}>Motor Customer (6 Months)</option>
                       <option value="COOLER_WHOLESALE" ${existing && existing.saleCategory==='COOLER_WHOLESALE'?'selected':''}>Cooler Wholesale (3M + Extension)</option>
                       <option value="MOTOR_WHOLESALE" ${existing && existing.saleCategory==='MOTOR_WHOLESALE'?'selected':''}>Motor Wholesale (1 Year)</option>
+                      <option value="OUT_OF_WARRANTY" ${existing && existing.saleCategory==='OUT_OF_WARRANTY'?'selected':''}>Out of Warranty (Paid Service)</option>
                     </select>
                   </div>
                   <div id="t-ext-days-box" style="display: ${existing && existing.saleCategory==='COOLER_WHOLESALE'?'block':'none'};">
@@ -2269,12 +2430,79 @@
                   </div>
                 </div>
 
+                <!-- MANPOWER / LABOR SERVICE CHARGE COLUMN -->
+                <div>
+                  <label class="block mb-1 font-semibold text-sky-400">Manpower / Labor Service Charge (₹)</label>
+                  <input type="number" id="t-labor-price" value="${existing ? (existing.laborPrice || 0) : 0}" oninput="app.calculateReplacementPartsTotal()" placeholder="Enter labor charge in ₹..." class="w-full bg-slate-950 border border-sky-800 rounded-xl p-2 font-mono font-bold text-sky-300 text-sm">
+                </div>
+
+                <!-- TOTAL REPAIR PRICE BOX -->
+                <div id="t-price-wrapper" class="bg-slate-950 border border-purple-800/80 p-3 rounded-xl space-y-1">
+                  <label class="block font-semibold text-purple-400">Total Repair / Service Amount (Parts + Labor) (₹)</label>
+                  <input type="number" id="t-price" value="${existing ? (existing.repairPrice || 0) : 0}" readonly class="w-full bg-slate-900 border border-slate-800 rounded-xl p-2 font-mono font-bold text-emerald-400 text-sm">
+                </div>
+
                 <button type="submit" class="w-full py-2.5 bg-emerald-600 font-bold rounded-xl text-white mt-2">${existing ? 'Update Ticket' : 'Save & Raise Ticket'}</button>
               </form>
             </div>
           </div>
         `;
         this.toggleServiceCoolerSnMode();
+        this.checkTicketWarrantyStatus();
+      }
+
+      checkTicketWarrantyStatus() {
+        this.calculateReplacementPartsTotal();
+      }
+
+      async calculateReplacementPartsTotal() {
+        const priceInput = document.getElementById('t-price');
+        const laborInput = document.getElementById('t-labor-price');
+        const categoryElem = document.getElementById('t-category');
+        const purchaseDateElem = document.getElementById('t-purchase-date');
+        if (!priceInput || !laborInput || !categoryElem || !purchaseDateElem) return;
+
+        const purchaseDate = new Date(purchaseDateElem.value);
+        const today = new Date();
+        const category = categoryElem.value;
+
+        let warrantyEnd = new Date(purchaseDate);
+        if (category === 'MOTOR_CUSTOMER') { warrantyEnd.setMonth(warrantyEnd.getMonth() + 6); }
+        else if (category === 'MOTOR_WHOLESALE' || category === 'COOLER_RETAIL') { warrantyEnd.setFullYear(warrantyEnd.getFullYear() + 1); }
+        else if (category === 'COOLER_WHOLESALE') { warrantyEnd.setMonth(warrantyEnd.getMonth() + 3); }
+        else { warrantyEnd.setMonth(warrantyEnd.getMonth() + 6); }
+
+        const isExpired = category === 'OUT_OF_WARRANTY' || today > warrantyEnd;
+
+        let totalPartsPrice = 0;
+        const allPartsInventory = await dbGetAll('replacementInventory');
+        const inventoryMap = {};
+        allPartsInventory.forEach(p => { inventoryMap[p.partCode] = p.partPrice || 0; });
+
+        document.querySelectorAll('.replacement-row').forEach(row => {
+          let sel = row.querySelector('[name="repl_part_code"]');
+          let nonWarrantyCheckbox = row.querySelector('[name="repl_non_warranty"]');
+          let code = sel ? sel.value : '';
+
+          if (code) {
+            let opt = sel.options[sel.selectedIndex];
+            let optPrice = opt ? Number(opt.getAttribute('data-price') || 0) : 0;
+            if (optPrice === 0 && inventoryMap[code]) {
+              optPrice = inventoryMap[code];
+            }
+
+            if (isExpired || (nonWarrantyCheckbox && nonWarrantyCheckbox.checked)) {
+              totalPartsPrice += optPrice;
+            }
+          }
+        });
+
+        let laborPrice = Number(laborInput.value || 0);
+        let grandTotal = totalPartsPrice + laborPrice;
+
+        priceInput.value = grandTotal;
+        priceInput.setAttribute('data-parts', totalPartsPrice);
+        priceInput.setAttribute('data-labor', laborPrice);
       }
 
       generateBrandSn(brandInput) {
@@ -2330,20 +2558,49 @@
       async addReplacementPartRow() {
         const container = document.getElementById('replacement-parts-rows');
         if(!container) return;
-        const inhouseMotors = (await dbGetAll('motors')).filter(m => !m.sn.startsWith('OUT-') && (!m.coolerSn || m.coolerSn.trim() === ''));
-        const outsourcedMotors = (await dbGetAll('outsourcedMotors')).filter(o => !o.coolerSn || o.coolerSn.trim() === '');
-        const spareParts = await dbGetAll('replacementInventory');
+
+        const coolers = await dbGetAll('coolers');
+        const assignedPartCodes = new Set();
+        coolers.forEach(clr => { if (clr.motorSn) assignedPartCodes.add(clr.motorSn); });
+        const allExistingTickets = await dbGetAll('serviceTickets');
+        allExistingTickets.forEach(t => {
+          if (t.replacementList) {
+            t.replacementList.forEach(r => {
+              let rCode = typeof r === 'object' ? r.code : r;
+              if(rCode) assignedPartCodes.add(rCode);
+            });
+          }
+          if (t.replacementPartSn) assignedPartCodes.add(t.replacementPartSn);
+        });
+
+        const inhouseMotors = (await dbGetAll('motors')).filter(m => !m.sn.startsWith('OUT-') && (!m.coolerSn || m.coolerSn.trim() === '') && !assignedPartCodes.has(m.sn));
+        const outsourcedMotors = (await dbGetAll('outsourcedMotors')).filter(o => (!o.coolerSn || o.coolerSn.trim() === '') && !assignedPartCodes.has(o.outSn));
+        const spareParts = (await dbGetAll('replacementInventory')).filter(p => !assignedPartCodes.has(p.partCode));
         const unassignedParts = [...inhouseMotors, ...outsourcedMotors, ...spareParts];
 
         const row = document.createElement('div');
-        row.className = "replacement-row flex gap-2 items-center bg-slate-900 p-2.5 rounded-xl border border-slate-800";
+        row.className = "replacement-row flex flex-col gap-2 bg-slate-900 p-2.5 rounded-xl border border-slate-800";
         row.innerHTML = `
-          <select name="repl_part_code" class="flex-1 min-w-0 bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs font-mono text-emerald-400 font-bold">
-            <option value="">Select Replacement Stock Part</option>
-            ${unassignedParts.map(p => `<option value="${p.sn || p.outSn || p.partCode}">${p.sn || p.outSn || p.partCode} (${p.model || p.partName || p.vendorName})</option>`).join('')}
-          </select>
-          <button type="button" onclick="app.openScannerModal(this.previousElementSibling)" class="shrink-0 px-2.5 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-xs font-bold flex items-center justify-center" title="Scan Part"><i class="fa-solid fa-camera"></i></button>
-          <button type="button" onclick="this.closest('.replacement-row').remove()" class="p-1.5 bg-rose-950 text-rose-400 rounded"><i class="fa-solid fa-trash"></i></button>
+          <div class="flex gap-2 items-center w-full">
+            <select name="repl_part_code" onchange="app.calculateReplacementPartsTotal()" class="flex-1 bg-slate-950 border border-slate-800 rounded-lg p-1.5 text-xs font-mono text-emerald-400 font-bold min-w-0">
+              <option value="">Select Unassigned Stock Part</option>
+              ${unassignedParts.map(p => {
+                let pCode = p.sn || p.outSn || p.partCode;
+                let pName = p.model || p.partName || p.vendorName;
+                let pPrice = p.partPrice || 0;
+                return `<option value="${pCode}" data-price="${pPrice}">${pCode} (${pName}) ${pPrice > 0 ? '[₹'+pPrice+']' : ''}</option>`;
+              }).join('')}
+            </select>
+            <button type="button" onclick="app.openScannerModal(this.closest('.replacement-row').querySelector('select'))" class="shrink-0 px-2.5 py-1.5 bg-sky-600 hover:bg-sky-500 text-white rounded-lg text-xs font-bold" title="Scan Part"><i class="fa-solid fa-camera"></i></button>
+            <button type="button" onclick="this.closest('.replacement-row').remove(); app.calculateReplacementPartsTotal();" class="p-1.5 bg-rose-950 text-rose-400 rounded shrink-0"><i class="fa-solid fa-trash"></i></button>
+          </div>
+          <div class="flex items-center justify-between pt-1 border-t border-slate-800/80">
+            <span class="text-[10px] text-slate-400 italic">Is this part outside warranty / paid?</span>
+            <label class="flex items-center space-x-1.5 text-[11px] text-amber-300 font-bold cursor-pointer bg-amber-950/50 px-2 py-0.5 rounded border border-amber-800/60">
+              <input type="checkbox" name="repl_non_warranty" onchange="app.calculateReplacementPartsTotal()" class="rounded bg-slate-950 border-amber-800 text-amber-500 focus:ring-0">
+              <span>Non-Warranty (Paid)</span>
+            </label>
+          </div>
         `;
         container.appendChild(row);
       }
@@ -2361,12 +2618,10 @@
 
       toggleWarrantyCategory(val) {
         const box = document.getElementById('t-ext-days-box');
-        if(!box) return;
-        if(val === 'COOLER_WHOLESALE') {
-          box.style.display = 'block';
-        } else {
-          box.style.display = 'none';
+        if(box) {
+          box.style.display = (val === 'COOLER_WHOLESALE') ? 'block' : 'none';
         }
+        this.checkTicketWarrantyStatus();
       }
 
       async saveServiceTicket(e, editTicketNo = null) {
@@ -2404,16 +2659,24 @@
         });
 
         let replacementList = [];
-        document.querySelectorAll('[name="repl_part_code"]').forEach(sel => {
-          if(sel.value) replacementList.push(sel.value);
+        document.querySelectorAll('.replacement-row').forEach(row => {
+          let sel = row.querySelector('[name="repl_part_code"]');
+          let chk = row.querySelector('[name="repl_non_warranty"]');
+          if(sel && sel.value) {
+            replacementList.push({ code: sel.value, isNonWarranty: chk ? chk.checked : false });
+          }
         });
 
         const complaintDesc = document.getElementById('t-desc').value.trim();
         const saleCategory = document.getElementById('t-category').value;
         const extendedDays = saleCategory === 'COOLER_WHOLESALE' ? (document.getElementById('t-ext-days').value || 30) : 0;
 
+        const partsPrice = Number(document.getElementById('t-price').getAttribute('data-parts') || 0);
+        const laborPrice = Number(document.getElementById('t-labor-price').value || 0);
+        const repairPrice = Number(document.getElementById('t-price').value || 0);
+
         await dbPut('serviceTickets', {
-          ticketNo, mobile, customerName, purchaseDate, coolerModel, coolerSnMode, coolerSn, complaintType: complaintsList[0], complaintsList, complaintDesc, saleCategory, extendedDays, defectiveList, defectiveComponent: defectiveList[0]?.name || 'N/A', defectiveBrand: defectiveList[0]?.brand || 'HEATRIX', defectiveSn: defectiveList[0]?.sn || 'N/A', replacementList, replacementPartSn: replacementList[0] || 'N/A', status: 'PENDING', createdAt: new Date().toISOString().split('T')[0]
+          ticketNo, mobile, customerName, purchaseDate, coolerModel, coolerSnMode, coolerSn, complaintType: complaintsList[0], complaintsList, complaintDesc, saleCategory, extendedDays, partsPrice, laborPrice, repairPrice, defectiveList, defectiveComponent: defectiveList[0]?.name || 'N/A', defectiveBrand: defectiveList[0]?.brand || 'HEATRIX', defectiveSn: defectiveList[0]?.sn || 'N/A', replacementList, replacementPartSn: replacementList[0]?.code || replacementList[0] || 'N/A', status: 'PENDING', createdAt: new Date().toISOString().split('T')[0]
         });
         alert('Service Ticket Saved & Synced Successfully!');
         this.closeModal();
@@ -2649,22 +2912,42 @@
       }
 
       async renderInventory(c) {
-        let inventoryParts = [];
+        let allParts = [];
+        let coolers = [];
+        let tickets = [];
         try {
-          inventoryParts = await dbGetAll('replacementInventory');
-        } catch(e) { inventoryParts = []; }
+          allParts = await dbGetAll('replacementInventory');
+          coolers = await dbGetAll('coolers');
+          tickets = await dbGetAll('serviceTickets');
+        } catch(e) {}
+
+        const assignedPartCodes = new Set();
+        coolers.forEach(clr => {
+          if (clr.motorSn) assignedPartCodes.add(clr.motorSn);
+        });
+        tickets.forEach(t => {
+          if (t.replacementList) {
+            t.replacementList.forEach(r => {
+              let rCode = typeof r === 'object' ? r.code : r;
+              if (rCode) assignedPartCodes.add(rCode);
+            });
+          }
+          if (t.replacementPartSn) assignedPartCodes.add(t.replacementPartSn);
+        });
+
+        const freeInventoryParts = allParts.filter(p => !assignedPartCodes.has(p.partCode));
 
         c.innerHTML = `
           <div class="space-y-5">
             <div class="border-l-4 border-sky-500 pl-3 py-1">
               <h2 class="text-base md:text-lg font-black text-slate-100 uppercase tracking-wide">${this.t('inventory')}</h2>
-              <p class="text-[11px] text-slate-400">Sri Devi Enterprises | Replacement spare parts and unassigned stock</p>
+              <p class="text-[11px] text-slate-400">Sri Devi Enterprises | Replacement spare parts and unassigned stock (Bound parts automatically hidden)</p>
             </div>
             <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-4">
               <div class="flex justify-between items-center">
                 <div>
-                  <h3 class="font-bold text-sm">Replacement Parts Inventory & Stock Management</h3>
-                  <p class="text-[11px] text-slate-400">Add, edit or delete spare parts with Brand Name and Serial Number provision.</p>
+                  <h3 class="font-bold text-sm">Free Replacement Parts Inventory & Stock Management</h3>
+                  <p class="text-[11px] text-slate-400">Add, edit or delete available spare parts stock.</p>
                 </div>
                 <button onclick="app.showAddInventoryPartModal()" class="px-3 py-1.5 bg-sky-600 hover:bg-sky-500 font-bold text-xs rounded-xl text-white">+ Add Part</button>
               </div>
@@ -2672,20 +2955,21 @@
               <div class="bg-slate-950 border border-slate-800 rounded-xl overflow-x-auto">
                 <table class="w-full text-left text-xs text-slate-300 min-w-[500px]">
                   <thead class="bg-slate-900 text-slate-400 font-mono uppercase border-b border-slate-800">
-                    <tr><th class="p-3">Brand Name</th><th class="p-3">Part Code / SN</th><th class="p-3">Part Name</th><th class="p-3 text-right">Actions</th></tr>
+                    <tr><th class="p-3">Brand Name</th><th class="p-3">Part Code / SN</th><th class="p-3">Part Name</th><th class="p-3">Out-of-Warranty Price</th><th class="p-3 text-right">Actions</th></tr>
                   </thead>
                   <tbody class="divide-y divide-slate-800">
-                    ${inventoryParts.length > 0 ? inventoryParts.map(p => `
+                    ${freeInventoryParts.length > 0 ? freeInventoryParts.map(p => `
                       <tr>
                         <td class="p-3 font-bold text-amber-400">${p.brandName || 'Sri Devi'}</td>
                         <td class="p-3 font-mono font-bold text-sky-400">${p.partCode}</td>
                         <td class="p-3 font-bold text-slate-100">${p.partName}</td>
+                        <td class="p-3 font-mono font-bold text-emerald-400">₹${p.partPrice || 0}</td>
                         <td class="p-3 text-right space-x-1">
                           <button onclick="app.showAddInventoryPartModal('${p.partCode}')" class="p-1.5 bg-amber-950 text-amber-400 rounded cursor-pointer" title="Edit Part"><i class="fa-solid fa-pen-to-square"></i></button>
                           <button onclick="app.deleteInventoryPart('${p.partCode}')" class="p-1.5 bg-rose-950 text-rose-400 rounded cursor-pointer" title="Delete Part"><i class="fa-solid fa-trash"></i></button>
                         </td>
                       </tr>
-                    `).join('') : `<tr><td colspan="4" class="p-4 text-center text-slate-500 italic">No replacement spare parts added yet.</td></tr>`}
+                    `).join('') : `<tr><td colspan="5" class="p-4 text-center text-slate-500 italic">No unassigned spare parts in stock. All parts are currently bound or used.</td></tr>`}
                   </tbody>
                 </table>
               </div>
@@ -2708,6 +2992,10 @@
                 <div>
                   <label class="block mb-1 font-semibold">Spare Part Name *</label>
                   <input type="text" id="inv-name" value="${existing ? existing.partName : ''}" required placeholder="e.g. Water Pump / Swing Motor" class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 font-bold">
+                </div>
+                <div>
+                  <label class="block mb-1 font-semibold">Out-of-Warranty Price (₹) *</label>
+                  <input type="number" id="inv-price" value="${existing ? (existing.partPrice || 0) : 0}" required placeholder="Enter price in ₹..." class="w-full bg-slate-950 border border-slate-800 rounded-xl p-2 font-mono font-bold text-emerald-400">
                 </div>
                 <div>
                   <label class="block mb-1 font-semibold">Part Code / Serial Number *</label>
@@ -2736,7 +3024,7 @@
         const yyyy = d.getFullYear();
         const mm = String(d.getMonth() + 1).padStart(2, '0');
         const dd = String(d.getDate()).padStart(2, '0');
-        const rand = String(Math.floor(Math.random() * 8999 + 1000)); // 4-digit random number
+        const rand = String(Math.floor(Math.random() * 8999 + 1000));
         codeInput.value = `${brandClean}-${yyyy}${mm}${dd}-${rand}`;
       }
 
@@ -2744,6 +3032,7 @@
         event.preventDefault();
         const brandName = document.getElementById('inv-brand').value.trim() || 'Sri Devi';
         const partName = document.getElementById('inv-name').value.trim();
+        const partPrice = Number(document.getElementById('inv-price').value || 0);
         const partCode = document.getElementById('inv-code').value.trim();
 
         if(!partCode) { alert('Please provide part code or serial number.'); return; }
@@ -2752,7 +3041,7 @@
           await dbDelete('replacementInventory', oldCode);
         }
 
-        await dbPut('replacementInventory', { partCode, brandName, partName, serialType: 'SERIAL' });
+        await dbPut('replacementInventory', { partCode, brandName, partName, partPrice, serialType: 'SERIAL' });
         alert('Spare Part Saved & Synced Successfully!');
         this.closeModal();
         this.navigate('inventory');
@@ -2986,7 +3275,7 @@
           .text-lg { font-size: 14pt !important; }
           .text-sm { font-size: 11pt !important; }
           .text-xs { font-size: 9.5pt !important; }
-          .text-\\[11px\\], .text-\\[10px\\], .text-\\[9px\\] { font-size: 8.5pt !important; }
+          .text-[11px], .text-[10px], .text-[9px] { font-size: 8.5pt !important; }
 
           .font-black { font-weight: 900 !important; }
           .font-bold { font-weight: 700 !important; }
@@ -3109,7 +3398,6 @@
             () => {}
           );
         } catch (err) {
-          console.warn('WebView camera stream blocked, fallback active:', err);
           reader.innerHTML = `
             <div class="min-h-[220px] flex flex-col items-center justify-center text-center p-4 space-y-3">
               <i class="fa-solid fa-triangle-exclamation text-3xl text-amber-400"></i>
@@ -3195,7 +3483,7 @@
               <strong class="text-sky-400 block font-bold">⚙️ In-House Motor Found</strong>
               <p>Model: <strong>${foundMotor.model}</strong></p>
               <p>Serial Number: <span class="font-mono text-sky-300">${foundMotor.sn}</span></p>
-              <p>Material: ${foundMotor.material} | Stack: ${foundMotor.stackSize}</p>
+              <p>Material: ${foundMotor.material} \vert{} Stack:${foundMotor.stackSize}</p>
               <p>QC Status: <span class="font-bold text-emerald-400">${foundMotor.qcStatus || 'PASS'}</span></p>
             </div>`;
         }
@@ -3213,8 +3501,8 @@
           contentHtml += `
             <div class="p-3 bg-emerald-950/40 border border-emerald-800/60 rounded-xl space-y-1">
               <strong class="text-emerald-400 block font-bold">🛠️ Service Ticket Found</strong>
-              <p>Ticket No: <span class="font-mono">${foundTicket.ticketNo}</span> | Customer: ${foundTicket.customerName}</p>
-              <p>Mobile: ${foundTicket.mobile} | Status: ${foundTicket.status}</p>
+              <p>Ticket No: <span class="font-mono">${foundTicket.ticketNo}</span> \vert{} Customer:${foundTicket.customerName}</p>
+              <p>Mobile: ${foundTicket.mobile} \vert{} Status:${foundTicket.status}</p>
             </div>`;
         }
 
